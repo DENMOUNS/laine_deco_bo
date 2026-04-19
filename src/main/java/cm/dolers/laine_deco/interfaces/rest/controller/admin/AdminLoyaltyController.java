@@ -7,7 +7,7 @@ import cm.dolers.laine_deco.application.usecase.LoyaltyService;
 import cm.dolers.laine_deco.application.usecase.BadgeService;
 import cm.dolers.laine_deco.domain.model.BadgeType;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -23,9 +23,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/loyalty")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminLoyaltyController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminLoyaltyController.class);
     private final LoyaltyService loyaltyService;
     private final BadgeService badgeService;
 

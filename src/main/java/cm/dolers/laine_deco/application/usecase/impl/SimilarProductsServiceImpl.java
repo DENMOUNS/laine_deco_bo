@@ -4,7 +4,7 @@ import cm.dolers.laine_deco.application.usecase.SimilarProductsService;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +15,11 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 @Transactional(readOnly = true)
 public class SimilarProductsServiceImpl implements SimilarProductsService {
-    private final ProductJpaRepository productRepository;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SimilarProductsServiceImpl.class);
+    private final ProductJpaRepository ProductJpaRepository;
 
     private static final int MIN_SIMILAR_PRODUCTS = 3;
     private static final int MAX_SIMILAR_PRODUCTS = 5;
@@ -29,9 +30,9 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
         log.info("Finding similar products for productId: {}", productId);
 
         // Récupérer tous les produits sauf celui-ci
-        List<ProductEntity> allProducts = productRepository.findAll().stream()
-            .filter(p -> !p.getId().equals(productId))
-            .collect(Collectors.toList());
+        List<ProductEntity> allProducts = ProductJpaRepository.findAll().stream()
+                .filter(p -> !p.getId().equals(productId))
+                .collect(Collectors.toList());
 
         if (allProducts.isEmpty()) {
             log.warn("No products found to compare with productId: {}", productId);
@@ -40,32 +41,32 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
 
         // Calculer un score de similarité pour chaque produit
         List<ProductWithSimilarityScore> productsWithScore = allProducts.stream()
-            .map(p -> new ProductWithSimilarityScore(p, calculateSimilarityScore(product, p)))
-            .filter(p -> p.score > 0)  // Garder seulement les produits avec un score positif
-            .sorted(Comparator.comparingDouble(ProductWithSimilarityScore::score).reversed())
-            .limit(MAX_SIMILAR_PRODUCTS)
-            .collect(Collectors.toList());
+                .map(p -> new ProductWithSimilarityScore(p, calculateSimilarityScore(product, p)))
+                .filter(p -> p.score > 0) // Garder seulement les produits avec un score positif
+                .sorted(Comparator.comparingDouble(ProductWithSimilarityScore::score).reversed())
+                .limit(MAX_SIMILAR_PRODUCTS)
+                .collect(Collectors.toList());
 
         // S'assurer d'avoir au moins MIN_SIMILAR_PRODUCTS produits
         if (productsWithScore.size() < MIN_SIMILAR_PRODUCTS) {
             log.warn("Only found {} similar products for productId: {}, minimum is {}",
-                productsWithScore.size(), productId, MIN_SIMILAR_PRODUCTS);
+                    productsWithScore.size(), productId, MIN_SIMILAR_PRODUCTS);
             // Ajouter les produits les plus vendus si nécessaire
             List<ProductEntity> topSellers = allProducts.stream()
-                .filter(p -> productsWithScore.stream().noneMatch(ps -> ps.product.getId().equals(p.getId())))
-                .filter(p -> p.getStockQuantity() > 0)  // Priorité aux produits en stock
-                .sorted(Comparator.comparingInt(ProductEntity::getSalesCount).reversed())
-                .limit(MIN_SIMILAR_PRODUCTS - productsWithScore.size())
-                .collect(Collectors.toList());
+                    .filter(p -> productsWithScore.stream().noneMatch(ps -> ps.product.getId().equals(p.getId())))
+                    .filter(p -> p.getStockQuantity() > 0) // Priorité aux produits en stock
+                    .sorted(Comparator.comparingInt(ProductEntity::getSalesCount).reversed())
+                    .limit(MIN_SIMILAR_PRODUCTS - productsWithScore.size())
+                    .collect(Collectors.toList());
 
             productsWithScore.addAll(topSellers.stream()
-                .map(p -> new ProductWithSimilarityScore(p, 0.0))
-                .collect(Collectors.toList()));
+                    .map(p -> new ProductWithSimilarityScore(p, 0.0))
+                    .collect(Collectors.toList()));
         }
 
         List<ProductEntity> result = productsWithScore.stream()
-            .map(ProductWithSimilarityScore::product)
-            .collect(Collectors.toList());
+                .map(ProductWithSimilarityScore::product)
+                .collect(Collectors.toList());
 
         log.info("Found {} similar products for productId: {}", result.size(), productId);
         return result;
@@ -84,13 +85,13 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
 
         // Même catégorie (priorité haute)
         if (original.getCategory() != null && candidate.getCategory() != null &&
-            original.getCategory().getId().equals(candidate.getCategory().getId())) {
+                original.getCategory().getId().equals(candidate.getCategory().getId())) {
             score += 100.0;
         }
 
         // Même marque (priorité moyenne)
         if (original.getBrand() != null && candidate.getBrand() != null &&
-            original.getBrand().equalsIgnoreCase(candidate.getBrand())) {
+                original.getBrand().equalsIgnoreCase(candidate.getBrand())) {
             score += 50.0;
         }
 
@@ -128,5 +129,6 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
     /**
      * Record interne pour associer un produit avec son score de similarité
      */
-    private record ProductWithSimilarityScore(ProductEntity product, double score) {}
+    private record ProductWithSimilarityScore(ProductEntity product, double score) {
+    }
 }

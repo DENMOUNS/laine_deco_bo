@@ -34,4 +34,9 @@ public interface ExpenseJpaRepository extends JpaRepository<ExpenseEntity, Long>
     @Query("SELECT SUM(e.amount) FROM ExpenseEntity e WHERE e.user.id = :userId AND e.operationDate BETWEEN :startDate AND :endDate")
     BigDecimal sumByUserIdAndDateRange(@Param("userId") Long userId, @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+    org.springframework.data.domain.Page<cm.dolers.laine_deco.infrastructure.persistence.entity.ExpenseEntity> findByStatus(cm.dolers.laine_deco.domain.model.ExpenseStatus status, org.springframework.data.domain.Pageable pageable);
+    org.springframework.data.domain.Page<cm.dolers.laine_deco.infrastructure.persistence.entity.ExpenseEntity> findByCategory(cm.dolers.laine_deco.domain.model.ExpenseCategory category, org.springframework.data.domain.Pageable pageable);
+    java.util.List<cm.dolers.laine_deco.infrastructure.persistence.entity.ExpenseEntity> findByOperationDateBetween(java.time.LocalDate start, java.time.LocalDate end);
 }
+

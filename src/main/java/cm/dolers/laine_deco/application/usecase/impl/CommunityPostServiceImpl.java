@@ -8,7 +8,7 @@ import cm.dolers.laine_deco.domain.exception.UserException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.*;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,8 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class CommunityPostServiceImpl implements CommunityPostService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CommunityPostServiceImpl.class);
     private final CommunityPostJpaRepository postRepository;
     private final CommunityCommentJpaRepository commentRepository;
     private final UserJpaRepository userRepository;
@@ -27,11 +28,10 @@ public class CommunityPostServiceImpl implements CommunityPostService {
     @Transactional
     public CommunityPostResponse createPost(CreateCommunityPostRequest request) {
         log.info("Creating community post");
-        // TODO: Extraire userId du JWT
-        Long userId = 1L;
-        
+        Long userId = getCurrentUserId();
+
         var user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "ID: " + userId));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "ID: " + userId));
 
         try {
             var post = new CommunityPostEntity();
@@ -55,7 +55,7 @@ public class CommunityPostServiceImpl implements CommunityPostService {
     @Transactional(readOnly = true)
     public CommunityPostResponse getPostById(Long postId) {
         var post = postRepository.findById(postId)
-            .orElseThrow(() -> new UserException(ErrorCode.POST_NOT_FOUND, "ID: " + postId));
+                .orElseThrow(() -> new UserException(ErrorCode.POST_NOT_FOUND, "ID: " + postId));
         return postMapper.toResponse(post);
     }
 
@@ -75,11 +75,11 @@ public class CommunityPostServiceImpl implements CommunityPostService {
     @Transactional
     public CommunityPostResponse updatePost(Long postId, CreateCommunityPostRequest request) {
         var post = postRepository.findById(postId)
-            .orElseThrow(() -> new UserException(ErrorCode.POST_NOT_FOUND, "ID: " + postId));
-        
+                .orElseThrow(() -> new UserException(ErrorCode.POST_NOT_FOUND, "ID: " + postId));
+
         post.setTitle(request.title());
         post.setContent(request.content());
-        
+
         var updated = postRepository.save(post);
         log.info("Community post updated: {}", postId);
         return postMapper.toResponse(updated);
@@ -99,7 +99,7 @@ public class CommunityPostServiceImpl implements CommunityPostService {
     @Transactional
     public void likePost(Long postId) {
         var post = postRepository.findById(postId)
-            .orElseThrow(() -> new UserException(ErrorCode.POST_NOT_FOUND, "ID: " + postId));
+                .orElseThrow(() -> new UserException(ErrorCode.POST_NOT_FOUND, "ID: " + postId));
         post.setLikesCount(post.getLikesCount() + 1);
         postRepository.save(post);
     }
@@ -108,20 +108,19 @@ public class CommunityPostServiceImpl implements CommunityPostService {
     @Transactional(readOnly = true)
     public Long getPostLikesCount(Long postId) {
         var post = postRepository.findById(postId)
-            .orElseThrow(() -> new UserException(ErrorCode.POST_NOT_FOUND, "ID: " + postId));
+                .orElseThrow(() -> new UserException(ErrorCode.POST_NOT_FOUND, "ID: " + postId));
         return (long) post.getLikesCount();
     }
 
     @Override
     @Transactional
     public CommunityCommentResponse addComment(Long postId, String comment) {
-        // TODO: Extraire userId du JWT
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
 
         var post = postRepository.findById(postId)
-            .orElseThrow(() -> new UserException(ErrorCode.POST_NOT_FOUND, "ID: " + postId));
+                .orElseThrow(() -> new UserException(ErrorCode.POST_NOT_FOUND, "ID: " + postId));
         var user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "ID: " + userId));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "ID: " + userId));
 
         try {
             var commentEntity = new CommunityCommentEntity();
@@ -146,5 +145,25 @@ public class CommunityPostServiceImpl implements CommunityPostService {
     @Transactional(readOnly = true)
     public Page<CommunityCommentResponse> getPostComments(Long postId, Pageable pageable) {
         return commentRepository.findByPostId(postId, pageable).map(postMapper::toCommentResponse);
+    }
+
+    @Override
+    public org.springframework.data.domain.Page<CommunityPostResponse> getPublishedPosts(
+            org.springframework.data.domain.Pageable pageable) {
+        return org.springframework.data.domain.Page.empty();
+    }
+
+    @Override
+    public org.springframework.data.domain.Page<CommunityPostResponse> getPublicPosts(
+            org.springframework.data.domain.Pageable pageable) {
+        return org.springframework.data.domain.Page.empty();
+    }
+
+    private Long getCurrentUserId() {
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
+            return user.getId();
+        }
+        throw new UserException(ErrorCode.AUTH_UNAUTHORIZED, "Utilisateur non authentifié");
     }
 }

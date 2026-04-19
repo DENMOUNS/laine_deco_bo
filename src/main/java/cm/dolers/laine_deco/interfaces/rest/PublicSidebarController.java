@@ -5,7 +5,7 @@ import cm.dolers.laine_deco.application.dto.BrandWithCountResponse;
 import cm.dolers.laine_deco.application.dto.SidebarFiltersResponse;
 import cm.dolers.laine_deco.application.usecase.SidebarFiltersService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,8 +20,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/public/sidebar")
 @RequiredArgsConstructor
-@Slf4j
+
 public class PublicSidebarController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PublicSidebarController.class);
     private final SidebarFiltersService sidebarFiltersService;
 
     /**
@@ -70,3 +71,5 @@ public class PublicSidebarController {
         ));
     }
 }
+
+

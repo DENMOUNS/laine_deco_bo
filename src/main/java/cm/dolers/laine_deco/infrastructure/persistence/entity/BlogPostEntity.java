@@ -121,4 +121,21 @@ public class BlogPostEntity {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    private java.time.Instant publishedAt;
+    private boolean published;
+    private int likeCount;
+    private int viewCount;
+    private String slug;
+    public java.time.Instant getPublishedAt() { return publishedAt; }
+    public void setPublishedAt(java.time.Instant publishedAt) { this.publishedAt = publishedAt; }
+    public boolean getPublished() { return published; }
+    public void setPublished(boolean published) { this.published = published; }
+    public int getLikeCount() { return likeCount; }
+    public void setLikeCount(int likeCount) { this.likeCount = likeCount; }
+    public int getViewCount() { return viewCount; }
+    public void setViewCount(int viewCount) { this.viewCount = viewCount; }
+    public String getSlug() { return slug; }
+    public void setSlug(String slug) { this.slug = slug; }
 }
+

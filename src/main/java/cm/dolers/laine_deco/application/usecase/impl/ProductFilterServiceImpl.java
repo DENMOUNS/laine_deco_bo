@@ -7,7 +7,7 @@ import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductJpaRepository;
 import cm.dolers.laine_deco.infrastructure.config.PaginationConstants;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,14 +16,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 @Transactional(readOnly = true)
 public class ProductFilterServiceImpl {
-    private final ProductJpaRepository productRepository;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProductFilterServiceImpl.class);
+    private final ProductJpaRepository ProductJpaRepository;
     private final ProductMapper productMapper;
 
     /**
@@ -31,13 +31,13 @@ public class ProductFilterServiceImpl {
      */
     public Page<ProductResponse> filterProducts(ProductFilterRequest filterRequest) {
         log.info("Filtering products with criteria: keyword={}, categoryId={}, brand={}",
-            filterRequest.keyword(), filterRequest.categoryId(), filterRequest.brand());
+                filterRequest.keyword(), filterRequest.categoryId(), filterRequest.brand());
 
         // Normaliser la pagination
-        int page = filterRequest.page() != null ? filterRequest.page() : 0;
+        int page = filterRequest.page() != null ? Integer.parseInt(filterRequest.page().toString()) : 0;
         int pageSize = PaginationConstants.normalizePageSize(
-            filterRequest.pageSize() != null ? filterRequest.pageSize() : PaginationConstants.DEFAULT_PAGE_SIZE
-        );
+                filterRequest.pageSize() != null ? Integer.parseInt(filterRequest.pageSize().toString())
+                        : Integer.parseInt(PaginationConstants.DEFAULT_PAGE_SIZE));
 
         // Construire la spécification pour les filtres
         Specification<ProductEntity> spec = buildSpecification(filterRequest);
@@ -49,7 +49,7 @@ public class ProductFilterServiceImpl {
         Pageable pageable = PageRequest.of(page, pageSize, sort);
 
         // Rechercher les produits
-        Page<ProductEntity> products = productRepository.findAll(spec, pageable);
+        Page<ProductEntity> products = ProductJpaRepository.findAll(spec, pageable);
 
         return products.map(productMapper::toResponse);
     }
@@ -59,13 +59,12 @@ public class ProductFilterServiceImpl {
      */
     private Specification<ProductEntity> buildSpecification(ProductFilterRequest filterRequest) {
         return Specification.where(
-            hasKeyword(filterRequest.keyword())
-                .and(hasCategory(filterRequest.categoryId()))
-                .and(hasBrand(filterRequest.brand()))
-                .and(priceBetween(filterRequest.minPrice(), filterRequest.maxPrice()))
-                .and(hasMinRating(filterRequest.minRating()))
-                .and(isInStock(filterRequest.inStockOnly()))
-        );
+                hasKeyword(filterRequest.keyword())
+                        .and(hasCategory(filterRequest.categoryId()))
+                        .and(hasBrand(filterRequest.brand()))
+                        .and(priceBetween(filterRequest.minPrice(), filterRequest.maxPrice()))
+                        .and(hasMinRating(filterRequest.minRating()))
+                        .and(isInStock(filterRequest.inStockOnly())));
     }
 
     private Specification<ProductEntity> hasKeyword(String keyword) {
@@ -75,9 +74,8 @@ public class ProductFilterServiceImpl {
             }
             String pattern = "%" + keyword.toLowerCase() + "%";
             return cb.or(
-                cb.like(cb.lower(root.get("name")), pattern),
-                cb.like(cb.lower(root.get("description")), pattern)
-            );
+                    cb.like(cb.lower(root.get("name")), pattern),
+                    cb.like(cb.lower(root.get("description")), pattern));
         };
     }
 

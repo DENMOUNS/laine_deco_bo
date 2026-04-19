@@ -19,14 +19,14 @@ public class OrderTrackingServiceImpl implements OrderTrackingService {
     @Override
     public OrderTrackingResponse trackOrderByNumber(String orderNumber) {
         OrderEntity order = orderRepository.findByOrderNumber(orderNumber)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNumber));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNumber));
         return mapper.toResponse(order);
     }
 
     @Override
     public OrderTrackingResponse trackOrderById(Long orderId) {
         OrderEntity order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
         return mapper.toResponse(order);
     }
 }

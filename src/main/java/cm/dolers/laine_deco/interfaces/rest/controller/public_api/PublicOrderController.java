@@ -1,11 +1,11 @@
 package cm.dolers.laine_deco.interfaces.rest.controller.public_api;
 
+
 import cm.dolers.laine_deco.application.dto.CreateOrderRequest;
 import cm.dolers.laine_deco.application.dto.OrderResponse;
 import cm.dolers.laine_deco.application.usecase.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/public/orders")
 @RequiredArgsConstructor
-@Slf4j
 public class PublicOrderController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PublicOrderController.class);
     private final OrderService orderService;
 
     /**
@@ -38,3 +38,5 @@ public class PublicOrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
+
+

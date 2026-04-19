@@ -3,7 +3,7 @@ package cm.dolers.laine_deco.application.usecase.impl;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductPackEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductPackProductEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductPackRepository;
-import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductRepository;
+import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductJpaRepository;
 import cm.dolers.laine_deco.application.dto.CreateProductPackRequest;
 import cm.dolers.laine_deco.application.dto.ProductPackResponse;
 import cm.dolers.laine_deco.application.mapper.ProductPackMapper;
@@ -20,7 +20,7 @@ import java.util.*;
 @Transactional
 public class ProductPackServiceImpl implements ProductPackService {
     private final ProductPackRepository productPackRepository;
-    private final ProductRepository productRepository;
+    private final ProductJpaRepository ProductJpaRepository;
     private final ProductPackMapper mapper;
 
     @Override
@@ -42,10 +42,10 @@ public class ProductPackServiceImpl implements ProductPackService {
         pack.setUpdatedAt(Instant.now());
 
         Set<ProductPackProductEntity> packProducts = new HashSet<>();
-        for (CreateProductPackRequest.PackProductItem item : request.getItems()) {
-            var product = productRepository.findById(item.getProductId())
-                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + item.getProductId()));
-            
+        for (cm.dolers.laine_deco.application.dto.ProductPackItemDto item : request.getItems()) {
+            var product = ProductJpaRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + item.getProductId()));
+
             ProductPackProductEntity packProduct = new ProductPackProductEntity();
             packProduct.setProductPack(pack);
             packProduct.setProduct(product);
@@ -61,7 +61,7 @@ public class ProductPackServiceImpl implements ProductPackService {
     @Override
     public ProductPackResponse updateProductPack(Long packId, CreateProductPackRequest request) {
         ProductPackEntity pack = productPackRepository.findById(packId)
-            .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
+                .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
 
         if (request.getItems() != null && !request.getItems().isEmpty()) {
             if (request.getItems().size() > 4) {
@@ -70,11 +70,11 @@ public class ProductPackServiceImpl implements ProductPackService {
 
             pack.getPackProducts().clear();
             Set<ProductPackProductEntity> packProducts = new HashSet<>();
-            
-            for (CreateProductPackRequest.PackProductItem item : request.getItems()) {
-                var product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + item.getProductId()));
-                
+
+            for (cm.dolers.laine_deco.application.dto.ProductPackItemDto item : request.getItems()) {
+                var product = ProductJpaRepository.findById(item.getProductId())
+                        .orElseThrow(() -> new IllegalArgumentException("Product not found: " + item.getProductId()));
+
                 ProductPackProductEntity packProduct = new ProductPackProductEntity();
                 packProduct.setProductPack(pack);
                 packProduct.setProduct(product);
@@ -100,7 +100,7 @@ public class ProductPackServiceImpl implements ProductPackService {
     @Transactional(readOnly = true)
     public ProductPackResponse getProductPackById(Long packId) {
         ProductPackEntity pack = productPackRepository.findById(packId)
-            .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
+                .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
         return mapper.toResponse(pack);
     }
 
@@ -137,7 +137,7 @@ public class ProductPackServiceImpl implements ProductPackService {
     @Override
     public void deactivateProductPack(Long packId) {
         ProductPackEntity pack = productPackRepository.findById(packId)
-            .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
+                .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
         pack.setIsActive(false);
         pack.setUpdatedAt(Instant.now());
         productPackRepository.save(pack);
@@ -146,7 +146,7 @@ public class ProductPackServiceImpl implements ProductPackService {
     @Override
     public void activateProductPack(Long packId) {
         ProductPackEntity pack = productPackRepository.findById(packId)
-            .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
+                .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
         pack.setIsActive(true);
         pack.setUpdatedAt(Instant.now());
         productPackRepository.save(pack);
@@ -155,7 +155,7 @@ public class ProductPackServiceImpl implements ProductPackService {
     @Override
     public void deleteProductPack(Long packId) {
         ProductPackEntity pack = productPackRepository.findById(packId)
-            .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
+                .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
         productPackRepository.delete(pack);
     }
 
@@ -166,8 +166,8 @@ public class ProductPackServiceImpl implements ProductPackService {
         }
 
         ProductPackEntity pack = productPackRepository.findById(packId)
-            .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
-        
+                .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
+
         pack.setPromotionalDiscount(discountPercentage);
         pack.setUpdatedAt(Instant.now());
         ProductPackEntity updatedPack = productPackRepository.save(pack);
@@ -177,8 +177,8 @@ public class ProductPackServiceImpl implements ProductPackService {
     @Override
     public ProductPackResponse removePromotionFromPack(Long packId) {
         ProductPackEntity pack = productPackRepository.findById(packId)
-            .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
-        
+                .orElseThrow(() -> new IllegalArgumentException("Pack not found: " + packId));
+
         pack.setPromotionalDiscount(0);
         pack.setUpdatedAt(Instant.now());
         ProductPackEntity updatedPack = productPackRepository.save(pack);

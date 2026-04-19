@@ -9,19 +9,19 @@ import cm.dolers.laine_deco.infrastructure.persistence.entity.KnittingProjectEnt
 import cm.dolers.laine_deco.infrastructure.persistence.repository.KnittingProjectJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class KnittingProjectServiceImpl implements KnittingProjectService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KnittingProjectServiceImpl.class);
     private final KnittingProjectJpaRepository projectRepository;
     private final UserJpaRepository userRepository;
     private final KnittingProjectMapper projectMapper;
@@ -32,10 +32,9 @@ public class KnittingProjectServiceImpl implements KnittingProjectService {
         log.info("Creating knitting project: {}", request.name());
 
         try {
-            // TODO: Extraire userId du JWT
-            Long userId = 1L;
+            Long userId = getCurrentUserId();
             var user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "ID: " + userId));
+                    .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "ID: " + userId));
 
             var project = new KnittingProjectEntity();
             project.setUser(user);
@@ -43,9 +42,9 @@ public class KnittingProjectServiceImpl implements KnittingProjectService {
             project.setDescription(request.description());
             project.setYarnColor(request.yarnColor());
             project.setYarnType(request.yarnType());
-            project.setNeedleSize(request.needleSize());
+            project.setNeedleSize(String.valueOf(request.needleSize()));
             project.setDifficulty(request.difficulty());
-            project.setEstimatedHours(request.estimatedHours());
+            project.setEstimatedHours(request.estimatedHours() != null ? request.estimatedHours() : 0);
             project.setStatus("IN_PROGRESS");
             project.setProgress(0);
 
@@ -62,7 +61,7 @@ public class KnittingProjectServiceImpl implements KnittingProjectService {
     @Transactional(readOnly = true)
     public KnittingProjectResponse getProjectById(Long projectId) {
         var project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new UserException(ErrorCode.PROJECT_NOT_FOUND, "ID: " + projectId));
+                .orElseThrow(() -> new UserException(ErrorCode.PROJECT_NOT_FOUND, "ID: " + projectId));
         return projectMapper.toResponse(project);
     }
 
@@ -70,22 +69,22 @@ public class KnittingProjectServiceImpl implements KnittingProjectService {
     @Transactional(readOnly = true)
     public Page<KnittingProjectResponse> getUserProjects(Long userId, Pageable pageable) {
         return projectRepository.findByUserId(userId, pageable)
-            .map(projectMapper::toResponse);
+                .map(projectMapper::toResponse);
     }
 
     @Override
     @Transactional
     public KnittingProjectResponse updateProject(Long projectId, CreateKnittingProjectRequest request) {
         var project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new UserException(ErrorCode.PROJECT_NOT_FOUND, "ID: " + projectId));
+                .orElseThrow(() -> new UserException(ErrorCode.PROJECT_NOT_FOUND, "ID: " + projectId));
 
         project.setName(request.name());
         project.setDescription(request.description());
         project.setYarnColor(request.yarnColor());
         project.setYarnType(request.yarnType());
-        project.setNeedleSize(request.needleSize());
+        project.setNeedleSize(String.valueOf(request.needleSize()));
         project.setDifficulty(request.difficulty());
-        project.setEstimatedHours(request.estimatedHours());
+        project.setEstimatedHours(request.estimatedHours() != null ? request.estimatedHours() : 0);
 
         var updated = projectRepository.save(project);
         log.info("Knitting project updated: {}", projectId);
@@ -106,7 +105,7 @@ public class KnittingProjectServiceImpl implements KnittingProjectService {
     @Transactional
     public void updateProjectProgress(Long projectId, Integer progress) {
         var project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new UserException(ErrorCode.PROJECT_NOT_FOUND, "ID: " + projectId));
+                .orElseThrow(() -> new UserException(ErrorCode.PROJECT_NOT_FOUND, "ID: " + projectId));
         project.setProgress(Math.min(progress, 100));
         projectRepository.save(project);
         log.info("Project progress updated: {} - {}", projectId, progress);
@@ -116,7 +115,7 @@ public class KnittingProjectServiceImpl implements KnittingProjectService {
     @Transactional
     public void completeProject(Long projectId) {
         var project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new UserException(ErrorCode.PROJECT_NOT_FOUND, "ID: " + projectId));
+                .orElseThrow(() -> new UserException(ErrorCode.PROJECT_NOT_FOUND, "ID: " + projectId));
         project.setStatus("COMPLETED");
         project.setProgress(100);
         projectRepository.save(project);
@@ -127,8 +126,16 @@ public class KnittingProjectServiceImpl implements KnittingProjectService {
     @Transactional(readOnly = true)
     public List<KnittingProjectResponse> getUserActiveProjects(Long userId) {
         return projectRepository.findByUserIdAndStatus(userId, "IN_PROGRESS")
-            .stream()
-            .map(projectMapper::toResponse)
-            .toList();
+                .stream()
+                .map(projectMapper::toResponse)
+                .toList();
+    }
+
+    private Long getCurrentUserId() {
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
+            return user.getId();
+        }
+        throw new UserException(ErrorCode.AUTH_UNAUTHORIZED, "Utilisateur non authentifié");
     }
 }

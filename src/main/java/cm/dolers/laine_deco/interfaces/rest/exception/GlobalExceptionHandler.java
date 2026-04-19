@@ -1,5 +1,6 @@
 package cm.dolers.laine_deco.interfaces.rest.exception;
 
+
 import cm.dolers.laine_deco.domain.exception.ApplicationException;
 import cm.dolers.laine_deco.domain.exception.AuthException;
 import cm.dolers.laine_deco.domain.exception.ErrorCode;
@@ -19,7 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@RestControllerAdvice
+// @RestControllerAdvice
+
+@RestControllerAdvice(basePackages = "cm.dolers.laine_deco.interfaces.rest")
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
@@ -154,3 +157,4 @@ public class GlobalExceptionHandler {
             .body(response);
     }
 }
+

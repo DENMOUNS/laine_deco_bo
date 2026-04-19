@@ -51,3 +51,4 @@ public class SignupRequest {
         this.confirmPassword = confirmPassword;
     }
 }
+

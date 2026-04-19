@@ -2,14 +2,10 @@ package cm.dolers.laine_deco.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "product_pack_products", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"product_pack_id", "product_id"})
-})
-@Data
+@Table(name = "product_pack_products")
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductPackProductEntity {
@@ -28,8 +24,12 @@ public class ProductPackProductEntity {
     @Column(nullable = false)
     private Integer quantity;
 
-    public ProductPackProductEntity(ProductEntity product, Integer quantity) {
-        this.product = product;
-        this.quantity = quantity;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public ProductPackEntity getProductPack() { return productPack; }
+    public void setProductPack(ProductPackEntity pp) { this.productPack = pp; }
+    public ProductEntity getProduct() { return product; }
+    public void setProduct(ProductEntity p) { this.product = p; }
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer q) { this.quantity = q; }
 }

@@ -112,4 +112,12 @@ public class PromoEventEntity {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    private java.math.BigDecimal discountAmount;
+    private String description;
+    public java.math.BigDecimal getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(java.math.BigDecimal discountAmount) { this.discountAmount = discountAmount; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 }
+

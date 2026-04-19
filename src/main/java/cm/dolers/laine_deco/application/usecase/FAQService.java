@@ -17,3 +17,4 @@ public interface FAQService {
     void deleteFAQ(Long faqId);
     void updateFAQOrder(Long faqId, Integer newOrder);
 }
+

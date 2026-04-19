@@ -1,17 +1,18 @@
 package cm.dolers.laine_deco.application.mapper;
 
 import cm.dolers.laine_deco.application.dto.*;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.UserLoyaltyProfile;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.UserBadge;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.LoyaltyRedemption;
+import cm.dolers.laine_deco.infrastructure.persistence.entity.UserBadgeEntity;
+import cm.dolers.laine_deco.infrastructure.persistence.entity.UserLoyaltyProfile;
 
 /**
- * Mappers pour loyauté
+ * Mappers pour loyautÃ©
  */
 public interface LoyaltyMapper {
     UserLoyaltyResponse toResponse(UserLoyaltyProfile profile);
     
-    UserBadgeResponse toResponse(UserBadge badge);
+    UserBadgeResponse toResponse(UserBadgeEntity badge);
     
     LoyaltyRedemptionResponse toResponse(LoyaltyRedemption redemption);
 }
+

@@ -3,7 +3,7 @@ package cm.dolers.laine_deco.infrastructure.persistence.seeder;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.AuditLogEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.AuditLogRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,8 +19,9 @@ import java.util.Random;
  */
 @Configuration
 @RequiredArgsConstructor
-@Slf4j
+
 public class AuditLogSeeder {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuditLogSeeder.class);
     private final AuditLogRepository auditLogRepository;
 
     @Bean
@@ -43,37 +44,37 @@ public class AuditLogSeeder {
         List<AuditLogEntity> logs = new ArrayList<>();
         Random random = new Random();
 
-        String[] actions = {"CREATE", "READ", "UPDATE", "DELETE", "LOGIN", "LOGOUT", "EXPORT", "IMPORT"};
-        String[] entityTypes = {"Product", "Order", "User", "Category", "Coupon", "Notification", "Review"};
-        String[] statuses = {"SUCCESS", "FAILURE", "PARTIAL"};
-        String[] ips = {"192.168.1.100", "192.168.1.101", "10.0.0.1", "172.16.0.1", "203.0.113.45", "198.51.100.10"};
-        String[] userEmails = {"admin@laine-deco.com", "user1@example.com", "user2@example.com", "guest@example.com"};
+        String[] actions = { "CREATE", "READ", "UPDATE", "DELETE", "LOGIN", "LOGOUT", "EXPORT", "IMPORT" };
+        String[] entityTypes = { "Product", "Order", "User", "Category", "Coupon", "Notification", "Review" };
+        String[] statuses = { "SUCCESS", "FAILURE", "PARTIAL" };
+        String[] ips = { "192.168.1.100", "192.168.1.101", "10.0.0.1", "172.16.0.1", "203.0.113.45", "198.51.100.10" };
+        String[] userEmails = { "admin@laine-deco.com", "user1@example.com", "user2@example.com", "guest@example.com" };
         String[] userAgents = {
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-            "Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36",
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15"
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+                "Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36",
+                "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15"
         };
-        String[] httpMethods = {"GET", "POST", "PUT", "DELETE", "PATCH"};
+        String[] httpMethods = { "GET", "POST", "PUT", "DELETE", "PATCH" };
         String[] requestPaths = {
-            "/api/admin/products",
-            "/api/admin/products/search",
-            "/api/client/products/search",
-            "/api/client/orders",
-            "/api/client/wishlist",
-            "/api/public/products",
-            "/api/public/products/popular",
-            "/api/admin/users",
-            "/api/client/loyalty/redeem",
-            "/api/auth/login",
-            "/api/auth/logout"
+                "/api/admin/products",
+                "/api/admin/products/search",
+                "/api/client/products/search",
+                "/api/client/orders",
+                "/api/client/wishlist",
+                "/api/public/products",
+                "/api/public/products/popular",
+                "/api/admin/users",
+                "/api/client/loyalty/redeem",
+                "/api/auth/login",
+                "/api/auth/logout"
         };
         String[] queryStrings = {
-            "page=0&pageSize=10",
-            "keyword=lampe&page=0",
-            "categoryId=5&minPrice=100000",
-            null,
-            "sort=POPULARITY&page=1"
+                "page=0&pageSize=10",
+                "keyword=lampe&page=0",
+                "categoryId=5&minPrice=100000",
+                null,
+                "sort=POPULARITY&page=1"
         };
 
         // Générer 100 logs sur les 30 derniers jours

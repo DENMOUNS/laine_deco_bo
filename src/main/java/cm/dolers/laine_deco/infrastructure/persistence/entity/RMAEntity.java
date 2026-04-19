@@ -122,4 +122,15 @@ public class RMAEntity {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    private java.time.Instant resolvedAt;
+    private String trackingNumber;
+    private String rmaNumber;
+    public java.time.Instant getResolvedAt() { return resolvedAt; }
+    public void setResolvedAt(java.time.Instant resolvedAt) { this.resolvedAt = resolvedAt; }
+    public String getTrackingNumber() { return trackingNumber; }
+    public void setTrackingNumber(String trackingNumber) { this.trackingNumber = trackingNumber; }
+    public String getRmaNumber() { return rmaNumber; }
+    public void setRmaNumber(String rmaNumber) { this.rmaNumber = rmaNumber; }
 }
+

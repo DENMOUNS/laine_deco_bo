@@ -9,21 +9,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProductApplicationService {
-    private final ProductJpaRepository productRepository;
+    private final ProductJpaRepository ProductJpaRepository;
 
-    public ProductApplicationService(ProductJpaRepository productRepository) {
-        this.productRepository = productRepository;
+    public ProductApplicationService(ProductJpaRepository ProductJpaRepository) {
+        this.ProductJpaRepository = ProductJpaRepository;
     }
 
     @Transactional
     public ProductResponse createProduct(ProductEntity product) {
-        ProductEntity saved = productRepository.save(product);
+        ProductEntity saved = ProductJpaRepository.save(product);
         return toResponse(saved);
     }
 
     @Transactional
     public ProductResponse updateProduct(Long productId, ProductEntity updates) {
-        ProductEntity product = productRepository.findById(productId)
+        ProductEntity product = ProductJpaRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         if (updates.getName() != null) {
             product.setName(updates.getName());
@@ -43,30 +43,30 @@ public class ProductApplicationService {
         if (updates.getReorderLevel() != null) {
             product.setReorderLevel(updates.getReorderLevel());
         }
-        ProductEntity saved = productRepository.save(product);
+        ProductEntity saved = ProductJpaRepository.save(product);
         return toResponse(saved);
     }
 
     public ProductResponse getProduct(Long productId) {
-        return productRepository.findById(productId)
+        return ProductJpaRepository.findById(productId)
                 .map(this::toResponse)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
     }
 
     public List<ProductResponse> searchProducts(String name) {
-        return productRepository.findByNameContainingIgnoreCase(name).stream()
+        return ProductJpaRepository.findByNameContainingIgnoreCase(name).stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     public List<ProductResponse> getAllProducts() {
-        return productRepository.findAll().stream()
+        return ProductJpaRepository.findAll().stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     public List<ProductResponse> getLowStockProducts() {
-        return productRepository.findLowStockProducts().stream()
+        return ProductJpaRepository.findLowStockProducts().stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -84,4 +84,16 @@ public class ProductApplicationService {
                 product.getMargin(),
                 product.getMarginPercentage());
     }
+
+    @Transactional
+    public void deactivateProducts(List<Long> productIds) {
+        for (Long id : productIds) {
+            ProductJpaRepository.findById(id).ifPresent(p -> {
+                p.setIsActive(false);
+                ProductJpaRepository.save(p);
+            });
+        }
+    }
 }
+
+

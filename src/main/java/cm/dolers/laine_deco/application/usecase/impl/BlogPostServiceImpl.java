@@ -8,7 +8,7 @@ import cm.dolers.laine_deco.domain.exception.ValidationException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.BlogPostEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.BlogPostJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,8 +19,10 @@ import java.text.Normalizer;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class BlogPostServiceImpl implements BlogPostService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
+            .getLogger(cm.dolers.laine_deco.application.usecase.impl.BlogPostServiceImpl.class);
     private final BlogPostJpaRepository blogPostRepository;
     private final BlogPostMapper blogPostMapper;
 
@@ -54,7 +56,7 @@ public class BlogPostServiceImpl implements BlogPostService {
     @Transactional(readOnly = true)
     public BlogPostResponse getBlogPostById(Long postId) {
         var post = blogPostRepository.findById(postId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "ID: " + postId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "ID: " + postId));
         return blogPostMapper.toResponse(post);
     }
 
@@ -62,7 +64,7 @@ public class BlogPostServiceImpl implements BlogPostService {
     @Transactional(readOnly = true)
     public BlogPostResponse getBlogPostBySlug(String slug) {
         var post = blogPostRepository.findBySlug(slug)
-            .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "Slug: " + slug));
+                .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "Slug: " + slug));
         return blogPostMapper.toResponse(post);
     }
 
@@ -70,21 +72,21 @@ public class BlogPostServiceImpl implements BlogPostService {
     @Transactional(readOnly = true)
     public Page<BlogPostResponse> getAllPosts(Pageable pageable) {
         return blogPostRepository.findAll(pageable)
-            .map(blogPostMapper::toResponse);
+                .map(blogPostMapper::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<BlogPostResponse> getPublishedPosts(Pageable pageable) {
         return blogPostRepository.findByPublishedTrue(pageable)
-            .map(blogPostMapper::toResponse);
+                .map(blogPostMapper::toResponse);
     }
 
     @Override
     @Transactional
     public BlogPostResponse updateBlogPost(Long postId, CreateBlogPostRequest request) {
         var post = blogPostRepository.findById(postId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "ID: " + postId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "ID: " + postId));
 
         post.setTitle(request.title());
         post.setSlug(generateSlug(request.title()));
@@ -111,7 +113,7 @@ public class BlogPostServiceImpl implements BlogPostService {
     @Transactional
     public void publishPost(Long postId) {
         var post = blogPostRepository.findById(postId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "ID: " + postId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "ID: " + postId));
         post.setPublished(true);
         post.setPublishedAt(Instant.now());
         blogPostRepository.save(post);
@@ -122,7 +124,7 @@ public class BlogPostServiceImpl implements BlogPostService {
     @Transactional
     public void incrementViewCount(Long postId) {
         var post = blogPostRepository.findById(postId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "ID: " + postId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "ID: " + postId));
         post.setViewCount(post.getViewCount() + 1);
         blogPostRepository.save(post);
     }
@@ -131,7 +133,7 @@ public class BlogPostServiceImpl implements BlogPostService {
     @Transactional
     public void incrementLikeCount(Long postId) {
         var post = blogPostRepository.findById(postId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "ID: " + postId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.BLOG_POST_NOT_FOUND, "ID: " + postId));
         post.setLikeCount(post.getLikeCount() + 1);
         blogPostRepository.save(post);
         log.info("Blog post liked: {}", postId);
@@ -139,11 +141,11 @@ public class BlogPostServiceImpl implements BlogPostService {
 
     private String generateSlug(String title) {
         String normalized = Normalizer.normalize(title, Normalizer.Form.NFD)
-            .replaceAll("[^\\p{ASCII}]", "")
-            .toLowerCase()
-            .replaceAll("[^a-z0-9]", "-")
-            .replaceAll("-+", "-")
-            .replaceAll("^-|-$", "");
+                .replaceAll("[^\\p{ASCII}]", "")
+                .toLowerCase()
+                .replaceAll("[^a-z0-9]", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
         return normalized;
     }
 }

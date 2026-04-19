@@ -2,8 +2,6 @@ package cm.dolers.laine_deco.infrastructure.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,7 +10,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import cm.dolers.laine_deco.domain.model.SkillLevel;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -164,4 +161,24 @@ public class KnittingProjectEntity {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    private int progress;
+    private int estimatedHours;
+    private String difficulty;
+    private String yarnType;
+    private String yarnColor;
+    private String description;
+    public int getProgress() { return progress; }
+    public void setProgress(int progress) { this.progress = progress; }
+    public int getEstimatedHours() { return estimatedHours; }
+    public void setEstimatedHours(int estimatedHours) { this.estimatedHours = estimatedHours; }
+    public String getDifficulty() { return difficulty; }
+    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
+    public String getYarnType() { return yarnType; }
+    public void setYarnType(String yarnType) { this.yarnType = yarnType; }
+    public String getYarnColor() { return yarnColor; }
+    public void setYarnColor(String yarnColor) { this.yarnColor = yarnColor; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 }
+

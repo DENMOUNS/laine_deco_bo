@@ -1,6 +1,13 @@
 package cm.dolers.laine_deco.domain.exception;
 
 public enum ErrorCode {
+    CALC_NOT_FOUND("CALC_NOT_FOUND", "Calculation not found", 404),
+    CONFIG_NOT_FOUND("CONFIG_NOT_FOUND", "Configuration not found", 404),
+    PROMO_NOT_FOUND("PROMO_NOT_FOUND", "Promo event not found", 404),
+    PAYMENT_INVALID_AMOUNT("PAYMENT_INVALID_AMOUNT", "Payment invalid amount", 400),
+    PAYMENT_ALREADY_REFUNDED("PAYMENT_ALREADY_REFUNDED", "Payment already refunded", 409),
+    PAYMENT_NOT_SUCCESS("PAYMENT_NOT_SUCCESS", "Payment not successful", 400),
+    PAYMENT_NOT_FOUND("PAYMENT_NOT_FOUND", "Payment not found", 404),
     // ==================== AUTHENTIFICATION ====================
     AUTH_INVALID_CREDENTIALS("AUTH_001", "Identifiants invalides", 401),
     AUTH_USER_NOT_FOUND("AUTH_002", "Utilisateur non trouvé", 404),
@@ -12,6 +19,8 @@ public enum ErrorCode {
     AUTH_EMAIL_EXISTS("AUTH_008", "Cet email existe déjà", 409),
 
     // ==================== PRODUITS ====================
+    CATEGORY_ALREADY_EXISTS("CAT_001", "Catégorie existe déjà", 409),
+    CATEGORY_NOT_FOUND("CAT_002", "Catégorie non trouvée", 404),
     PRODUCT_NOT_FOUND("PROD_001", "Produit non trouvé", 404),
     PRODUCT_OUT_OF_STOCK("PROD_002", "Produit en rupture de stock", 400),
     PRODUCT_INVALID_PRICE("PROD_003", "Prix invalide", 400),
@@ -32,6 +41,9 @@ public enum ErrorCode {
     COUPON_EXPIRED("PAY_004", "Coupon expiré", 400),
     COUPON_USAGE_LIMIT_EXCEEDED("PAY_005", "Limite d'utilisation du coupon dépassée", 400),
     COUPON_NOT_FOUND("PAY_006", "Coupon non trouvé", 404),
+    COUPON_CODE_DUPLICATE("PAY_007", "Code coupon dupliqué", 409),
+    COUPON_INACTIVE("PAY_008", "Coupon inactif", 400),
+    COUPON_LIMIT_EXCEEDED("PAY_009", "Limite dépassée", 400),
 
     // ==================== AVIS & NOTES ====================
     REVIEW_NOT_FOUND("REV_001", "Avis non trouvé", 404),
@@ -51,10 +63,12 @@ public enum ErrorCode {
     PATTERN_NOT_FOUND("KNIT_003", "Modèle non trouvé", 404),
 
     // ==================== BLOG & CONTENU ====================
+    POST_NOT_FOUND("BLOG_000", "Post non trouvé", 404),
     BLOG_POST_NOT_FOUND("BLOG_001", "Article non trouvé", 404),
     BLOG_POST_TITLE_EMPTY("BLOG_002", "Le titre de l'article est vide", 400),
 
     // ==================== FINANCES ====================
+    INVOICE_NOT_FOUND("FIN_000", "Facture non trouvée", 404),
     EXPENSE_NOT_FOUND("FIN_001", "Dépense non trouvée", 404),
     EXPENSE_INVALID_AMOUNT("FIN_002", "Montant de dépense invalide", 400),
     EXPENSE_CATEGORY_NOT_FOUND("FIN_003", "Catégorie de dépense non trouvée", 404),
@@ -81,6 +95,8 @@ public enum ErrorCode {
     NOTIFICATION_NOT_FOUND("NOTIF_001", "Notification non trouvée", 404),
 
     // ==================== CHAT ====================
+    CHAT_NOT_FOUND("CHAT_000", "Chat non trouvé", 404),
+    CHAT_MSG_NOT_FOUND("CHAT_000", "Chat msg non trouvé", 404),
     CONVERSATION_NOT_FOUND("CHAT_001", "Conversation non trouvée", 404),
     MESSAGE_NOT_FOUND("CHAT_002", "Message non trouvé", 404),
 
@@ -115,3 +131,10 @@ public enum ErrorCode {
         return httpStatus;
     }
 }
+
+
+
+
+
+
+

@@ -125,4 +125,18 @@ public class ClientProfileEntity {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    private String phone;
+    private String zipCode;
+    private String company;
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public String getZipCode() { return zipCode; }
+    public void setZipCode(String zipCode) { this.zipCode = zipCode; }
+    public String getCompany() { return company; }
+    public void setCompany(String company) { this.company = company; }
+
+    private String taxId; public String getTaxId() { return taxId; } public void setTaxId(String taxId) { this.taxId = taxId; }
 }
+
+

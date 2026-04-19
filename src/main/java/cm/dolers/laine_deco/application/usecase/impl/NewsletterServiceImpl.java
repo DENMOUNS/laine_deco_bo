@@ -39,7 +39,7 @@ public class NewsletterServiceImpl implements NewsletterService {
         subscription.setLastName(request.getLastName());
         subscription.setIsActive(true);
         subscription.setSubscribedAt(Instant.now());
-        
+
         NewsletterSubscriptionEntity saved = repository.save(subscription);
         return mapper.toResponse(saved);
     }
@@ -47,8 +47,8 @@ public class NewsletterServiceImpl implements NewsletterService {
     @Override
     public NewsletterSubscriptionResponse unsubscribe(String email) {
         NewsletterSubscriptionEntity subscription = repository.findByEmail(email)
-            .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + email));
-        
+                .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + email));
+
         subscription.setIsActive(false);
         subscription.setUnsubscribedAt(Instant.now());
         NewsletterSubscriptionEntity updated = repository.save(subscription);
@@ -58,8 +58,8 @@ public class NewsletterServiceImpl implements NewsletterService {
     @Override
     public NewsletterSubscriptionResponse resubscribe(String email) {
         NewsletterSubscriptionEntity subscription = repository.findByEmail(email)
-            .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + email));
-        
+                .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + email));
+
         subscription.setIsActive(true);
         subscription.setUnsubscribedAt(null);
         NewsletterSubscriptionEntity updated = repository.save(subscription);

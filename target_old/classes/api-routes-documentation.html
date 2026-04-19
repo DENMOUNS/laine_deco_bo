@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laine Déco - Documentation API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .quick-link {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #667eea;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .quick-link:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #667eea;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .endpoint {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 10px;
+            color: white;
+        }
+        
+        .method.get {
+            background: #61affe;
+        }
+        
+        .method.post {
+            background: #49cc90;
+        }
+        
+        .method.put {
+            background: #fca130;
+        }
+        
+        .method.delete {
+            background: #f93e3e;
+        }
+        
+        .path {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        
+        .description {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .auth-required {
+            display: inline-block;
+            background: #ffa500;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-left: 10px;
+        }
+        
+        .parameters {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        
+        .param {
+            margin: 5px 0;
+            color: #555;
+        }
+        
+        footer {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .tag {
+            display: inline-block;
+            background: #e0e0e0;
+            color: #333;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin: 0 5px 5px 0;
+        }
+        
+        .toc {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .toc-item {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .toc-item:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .status-200 { color: #4caf50; }
+        .status-201 { color: #2196f3; }
+        .status-400 { color: #ff9800; }
+        .status-401 { color: #f44336; }
+        .status-403 { color: #f44336; }
+        .status-404 { color: #f44336; }
+        .status-500 { color: #9c27b0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧵 Laine Déco - Documentation API</h1>
+            <p class="subtitle">Plateforme de vente de laine et accessoires</p>
+            
+            <div class="quick-links">
+                <a href="http://localhost:8080/swagger-ui.html" class="quick-link">📊 Swagger UI</a>
+                <a href="http://localhost:8080/api-docs" class="quick-link">📄 API JSON</a>
+                <a href="http://localhost:8080/api-docs.yaml" class="quick-link">📋 OpenAPI YAML</a>
+                <a href="http://localhost:8080/actuator/health" class="quick-link">💚 Health</a>
+            </div>
+        </header>
+        
+        <!-- Table of Contents -->
+        <section class="section">
+            <h2>📑 Table des Matières</h2>
+            <div class="toc">
+                <div class="toc-item">🔐 Authentication</div>
+                <div class="toc-item">🌐 Public Routes</div>
+                <div class="toc-item">👤 Client Routes</div>
+                <div class="toc-item">👨‍💼 Admin Routes</div>
+                <div class="toc-item">💰 Finance Routes</div>
+            </div>
+        </section>
+        
+        <!-- Authentication -->
+        <section class="section">
+            <h2>🔐 Authentication</h2>
+            <p style="margin-bottom: 20px;">Les routes d'authentification permettent de gérer l'accès à l'API.</p>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/auth/signup</span>
+                <span class="tag">Public</span>
+                <p class="description">Créer un nouveau compte utilisateur</p>
+                <div class="parameters">
+                    <div class="param"><strong>Body:</strong> email, password, firstName, lastName</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-201">201</span> AuthResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/auth/login</span>
+                <span class="tag">Public</span>
+                <p class="description">Authentifier un utilisateur</p>
+                <div class="parameters">
+                    <div class="param"><strong>Body:</strong> email, password</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> AuthResponse (token, refreshToken)</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/auth/logout</span>
+                <span class="auth-required">⚠️ Auth Required</span>
+                <p class="description">Déconnecter l'utilisateur actuel</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Success</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/auth/me</span>
+                <span class="auth-required">⚠️ Auth Required</span>
+                <p class="description">Récupérer le profil utilisateur actuel</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> UserResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/auth/forgot-password</span>
+                <span class="tag">Public</span>
+                <p class="description">Demander la réinitialisation du mot de passe</p>
+                <div class="parameters">
+                    <div class="param"><strong>Body:</strong> email</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> MessageResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/auth/reset-password</span>
+                <span class="tag">Public</span>
+                <p class="description">Réinitialiser le mot de passe</p>
+                <div class="parameters">
+                    <div class="param"><strong>Body:</strong> token, newPassword</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> MessageResponse</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Public Routes - Products -->
+        <section class="section">
+            <h2>🌐 Public Routes - Produits</h2>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/products</span>
+                <span class="tag">Public</span>
+                <p class="description">Lister tous les produits avec filtres optionnels</p>
+                <div class="parameters">
+                    <div class="param"><strong>Paramètres:</strong> page, pageSize, keyword, categoryId, brand, minPrice, maxPrice, minRating, inStockOnly, sortBy</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Page&lt;ProductResponse&gt;</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/products/{id}</span>
+                <span class="tag">Public</span>
+                <p class="description">Récupérer les détails d'un produit spécifique</p>
+                <div class="parameters">
+                    <div class="param"><strong>Path:</strong> id (ID du produit)</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> ProductResponse | <span class="status-404">404</span> Not Found</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/products/{id}/details</span>
+                <span class="tag">Public</span>
+                <p class="description">Détails complets du produit avec produits similaires</p>
+                <div class="parameters">
+                    <div class="param"><strong>Path:</strong> id (ID du produit)</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> ProductDetailWithSimilarsResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/products/by-category/{categoryId}</span>
+                <span class="tag">Public</span>
+                <p class="description">Récupérer tous les produits d'une catégorie</p>
+                <div class="parameters">
+                    <div class="param"><strong>Path:</strong> categoryId (ID de la catégorie)</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Page&lt;ProductResponse&gt;</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/products/by-brand/{brand}</span>
+                <span class="tag">Public</span>
+                <p class="description">Récupérer tous les produits d'une marque</p>
+                <div class="parameters">
+                    <div class="param"><strong>Path:</strong> brand (Nom de la marque)</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Page&lt;ProductResponse&gt;</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/products/search/keyword</span>
+                <span class="tag">Public</span>
+                <p class="description">Rechercher des produits par mot-clé</p>
+                <div class="parameters">
+                    <div class="param"><strong>Paramètres:</strong> keyword (requis), page, pageSize</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Page&lt;ProductResponse&gt;</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/products/search/popular</span>
+                <span class="tag">Public</span>
+                <p class="description">Récupérer les produits populaires</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Page&lt;ProductResponse&gt;</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/products/search/newest</span>
+                <span class="tag">Public</span>
+                <p class="description">Récupérer les nouveaux produits</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Page&lt;ProductResponse&gt;</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Public Routes - Categories -->
+        <section class="section">
+            <h2>🌐 Public Routes - Catégories</h2>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/categories</span>
+                <span class="tag">Public</span>
+                <p class="description">Lister toutes les catégories</p>
+                <div class="parameters">
+                    <div class="param"><strong>Paramètres:</strong> page, pageSize</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Page&lt;CategoryResponse&gt;</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/categories/{id}</span>
+                <span class="tag">Public</span>
+                <p class="description">Récupérer les détails d'une catégorie</p>
+                <div class="parameters">
+                    <div class="param"><strong>Path:</strong> id (ID de la catégorie)</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> CategoryResponse</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Public Routes - Orders -->
+        <section class="section">
+            <h2>🌐 Public Routes - Commandes</h2>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/public/orders</span>
+                <span class="tag">Public</span>
+                <p class="description">Créer une commande en tant qu'invité</p>
+                <div class="parameters">
+                    <div class="param"><strong>Body:</strong> items, shippingAddress, billingAddress, etc.</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-201">201</span> OrderResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/order-tracking/by-number/{orderNumber}</span>
+                <span class="tag">Public</span>
+                <p class="description">Suivre une commande par son numéro</p>
+                <div class="parameters">
+                    <div class="param"><strong>Path:</strong> orderNumber (Numéro de commande)</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> OrderTrackingResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/public/order-tracking/by-id/{orderId}</span>
+                <span class="tag">Public</span>
+                <p class="description">Suivre une commande par son ID</p>
+                <div class="parameters">
+                    <div class="param"><strong>Path:</strong> orderId (ID de la commande)</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> OrderTrackingResponse</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Client Routes -->
+        <section class="section">
+            <h2>👤 Client Routes</h2>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/client/orders</span>
+                <span class="auth-required">⚠️ Auth Required</span>
+                <p class="description">Lister les commandes de l'utilisateur</p>
+                <div class="parameters">
+                    <div class="param"><strong>Paramètres:</strong> page, pageSize</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Page&lt;OrderResponse&gt;</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/client/orders</span>
+                <span class="auth-required">⚠️ Auth Required</span>
+                <p class="description">Créer une nouvelle commande</p>
+                <div class="parameters">
+                    <div class="param"><strong>Body:</strong> items, shippingAddress, billingAddress, paymentMethod</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-201">201</span> OrderResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/client/wishlist</span>
+                <span class="auth-required">⚠️ Auth Required</span>
+                <p class="description">Afficher la liste de souhaits</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Page&lt;WishlistItemResponse&gt;</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/client/wishlist/{productId}</span>
+                <span class="auth-required">⚠️ Auth Required</span>
+                <p class="description">Ajouter un produit à la liste de souhaits</p>
+                <div class="parameters">
+                    <div class="param"><strong>Path:</strong> productId (ID du produit)</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-201">201</span> WishlistItemResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method delete">DELETE</span>
+                <span class="path">/api/client/wishlist/{productId}</span>
+                <span class="auth-required">⚠️ Auth Required</span>
+                <p class="description">Retirer un produit de la liste de souhaits</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Success</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/client/loyalty/profile</span>
+                <span class="auth-required">⚠️ Auth Required</span>
+                <p class="description">Afficher le profil de fidélité</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> UserLoyaltyResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/client/notifications</span>
+                <span class="auth-required">⚠️ Auth Required</span>
+                <p class="description">Lister les notifications</p>
+                <div class="parameters">
+                    <div class="param"><strong>Paramètres:</strong> page, pageSize</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Page&lt;NotificationResponse&gt;</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Admin Routes -->
+        <section class="section">
+            <h2>👨‍💼 Admin Routes</h2>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/admin/products</span>
+                <span class="auth-required">⚠️ ADMIN Only</span>
+                <p class="description">Créer un nouveau produit</p>
+                <div class="parameters">
+                    <div class="param"><strong>Body:</strong> name, description, price, stock, category, brand</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-201">201</span> ProductResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method put">PUT</span>
+                <span class="path">/api/admin/products/{id}</span>
+                <span class="auth-required">⚠️ ADMIN Only</span>
+                <p class="description">Mettre à jour un produit</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> ProductResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/admin/categories</span>
+                <span class="auth-required">⚠️ ADMIN Only</span>
+                <p class="description">Créer une nouvelle catégorie</p>
+                <div class="parameters">
+                    <div class="param"><strong>Body:</strong> name, description</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-201">201</span> CategoryResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/admin/dashboard/stats</span>
+                <span class="auth-required">⚠️ ADMIN Only</span>
+                <p class="description">Récupérer les statistiques du tableau de bord</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> DashboardStatsResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/admin/orders/{orderId}</span>
+                <span class="auth-required">⚠️ ADMIN Only</span>
+                <p class="description">Récupérer les détails d'une commande</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> OrderResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method put">PUT</span>
+                <span class="path">/api/admin/orders/{orderId}/status</span>
+                <span class="auth-required">⚠️ ADMIN Only</span>
+                <p class="description">Mettre à jour le statut d'une commande</p>
+                <div class="parameters">
+                    <div class="param"><strong>Paramètres:</strong> status (PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED)</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> Success</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Finance Routes -->
+        <section class="section">
+            <h2>💰 Finance Routes</h2>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/finance/expenses</span>
+                <span class="auth-required">⚠️ FINANCE Only</span>
+                <p class="description">Créer une nouvelle dépense</p>
+                <div class="parameters">
+                    <div class="param"><strong>Body:</strong> amount, category, description, date</div>
+                    <div class="param"><strong>Response:</strong> <span class="status-201">201</span> ExpenseResponse</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/finance/expenses</span>
+                <span class="auth-required">⚠️ FINANCE Only</span>
+                <p class="description">Lister toutes les dépenses</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> List&lt;ExpenseResponse&gt;</div>
+                </div>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/finance/products</span>
+                <span class="auth-required">⚠️ FINANCE Only</span>
+                <p class="description">Lister les produits (vue finance)</p>
+                <div class="parameters">
+                    <div class="param"><strong>Response:</strong> <span class="status-200">200</span> List&lt;ProductResponse&gt;</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Response Codes -->
+        <section class="section">
+            <h2>📊 Codes de Réponse HTTP</h2>
+            <table style="width:100%;border-collapse:collapse;">
+                <tr style="background:#f0f0f0;">
+                    <th style="border:1px solid #ddd;padding:10px;text-align:left;">Code</th>
+                    <th style="border:1px solid #ddd;padding:10px;text-align:left;">Signification</th>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #ddd;padding:10px;"><span class="status-200">200</span></td>
+                    <td style="border:1px solid #ddd;padding:10px;">Succès - Requête traitée avec succès</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #ddd;padding:10px;"><span class="status-201">201</span></td>
+                    <td style="border:1px solid #ddd;padding:10px;">Créé - Ressource créée avec succès</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #ddd;padding:10px;"><span class="status-400">400</span></td>
+                    <td style="border:1px solid #ddd;padding:10px;">Mauvaise Requête - Paramètres invalides</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #ddd;padding:10px;"><span class="status-401">401</span></td>
+                    <td style="border:1px solid #ddd;padding:10px;">Non Authentifié - Token required</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #ddd;padding:10px;"><span class="status-403">403</span></td>
+                    <td style="border:1px solid #ddd;padding:10px;">Interdit - Droits insuffisants</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #ddd;padding:10px;"><span class="status-404">404</span></td>
+                    <td style="border:1px solid #ddd;padding:10px;">Non Trouvé - Ressource inexistante</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #ddd;padding:10px;"><span class="status-500">500</span></td>
+                    <td style="border:1px solid #ddd;padding:10px;">Erreur Serveur - Problème interne</td>
+                </tr>
+            </table>
+        </section>
+        
+        <footer>
+            <p>📚 Documentation API Laine Déco | Version 1.0.0 | Créée le Avril 2026</p>
+            <p>Pour plus d'informations : <strong>support@laine-deco.cm</strong></p>
+        </footer>
+    </div>
+</body>
+</html>

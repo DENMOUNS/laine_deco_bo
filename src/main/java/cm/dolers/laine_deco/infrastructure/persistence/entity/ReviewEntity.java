@@ -58,6 +58,17 @@ public class ReviewEntity {
     @Column(nullable = false)
     private Instant updatedAt = Instant.now();
 
+    private String title;
+    private Integer helpfulCount = 0;
+    private Boolean isVerifiedPurchase = false;
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public Integer getHelpfulCount() { return helpfulCount; }
+    public void setHelpfulCount(Integer helpfulCount) { this.helpfulCount = helpfulCount; }
+    public Boolean getIsVerifiedPurchase() { return isVerifiedPurchase; }
+    public void setIsVerifiedPurchase(Boolean isVerifiedPurchase) { this.isVerifiedPurchase = isVerifiedPurchase; }
+
     public Long getId() {
         return id;
     }
@@ -137,4 +148,11 @@ public class ReviewEntity {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    
 }
+
+
+
+
+

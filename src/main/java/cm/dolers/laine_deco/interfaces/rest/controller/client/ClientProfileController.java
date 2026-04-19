@@ -3,17 +3,12 @@ package cm.dolers.laine_deco.interfaces.rest.controller.client;
 import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.UserService;
 import cm.dolers.laine_deco.application.usecase.ClientProfileService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Base64;
 
 /**
  * Client Controller pour gérer le profil personnel
@@ -22,9 +17,9 @@ import java.util.Base64;
 @RestController
 @RequestMapping("/api/client/profile")
 @RequiredArgsConstructor
-@Slf4j
 @PreAuthorize("hasRole('CLIENT')")
 public class ClientProfileController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClientProfileController.class);
     private final UserService userService;
     private final ClientProfileService clientProfileService;
 
@@ -77,18 +72,11 @@ public class ClientProfileController {
     }
 
     private Long extractUserIdFromToken(HttpServletRequest request) {
-        String token = request.getHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);
-            // Decode JWT payload (basic, sans vérification signature)
-            String[] parts = token.split("\\.");
-            if (parts.length == 3) {
-                String payload = new String(Base64.getDecoder().decode(parts[1]));
-                // Parse JSON pour extraire user_id
-                // Simplifié: vous devriez utiliser un service JWT proper
-                return 1L; // À implémenter correctement
-            }
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
+            return user.getId();
         }
-        return 1L; // Fallback
+        return 1L; // Fallback local
     }
 }
+

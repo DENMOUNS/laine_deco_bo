@@ -9,7 +9,6 @@ import cm.dolers.laine_deco.domain.model.ReviewStatus;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.ReviewEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,10 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ReviewServiceImpl implements ReviewService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReviewServiceImpl.class);
     private final ReviewJpaRepository reviewRepository;
-    private final ProductJpaRepository productRepository;
+    private final ProductJpaRepository ProductJpaRepository;
     private final UserJpaRepository userRepository;
     private final ReviewMapper reviewMapper;
 
@@ -32,7 +31,7 @@ public class ReviewServiceImpl implements ReviewService {
         var user = userRepository.findById(userId)
             .orElseThrow(() -> new ReviewException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId));
 
-        var product = productRepository.findById(request.productId())
+        var product = ProductJpaRepository.findById(request.productId())
             .orElseThrow(() -> new ReviewException(ErrorCode.PRODUCT_NOT_FOUND, "Product ID: " + request.productId()));
 
         if (request.rating() < 1 || request.rating() > 5) {
@@ -92,6 +91,24 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
+    public void deleteUserReview(Long reviewId, Long userId) {
+        var review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new ReviewException(ErrorCode.REVIEW_NOT_FOUND, "ID: " + reviewId));
+            
+        if (!review.getUser().getId().equals(userId)) {
+            throw new ReviewException(ErrorCode.REVIEW_UNAUTHORIZED, "You can only delete your own reviews");
+        }
+        
+        if (review.getCreatedAt() != null && review.getCreatedAt().plusSeconds(5 * 60).isBefore(java.time.Instant.now())) {
+            throw new ReviewException(ErrorCode.REVIEW_UNAUTHORIZED, "You cannot delete a review 5 minutes after its creation");
+        }
+        
+        reviewRepository.deleteById(reviewId);
+        log.info("Review {} deleted by user {}", reviewId, userId);
+    }
+
+    @Override
+    @Transactional
     public void approveReview(Long reviewId) {
         var review = reviewRepository.findById(reviewId)
             .orElseThrow(() -> new ReviewException(ErrorCode.REVIEW_NOT_FOUND, "ID: " + reviewId));
@@ -110,3 +127,4 @@ public class ReviewServiceImpl implements ReviewService {
         log.info("Review rejected: {}", reviewId);
     }
 }
+

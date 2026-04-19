@@ -101,4 +101,34 @@ public class WoolCalculationEntity {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    private String projectName;
+    private String needleSize;
+    private Double width;
+    private Double height;
+    private Double estimatedYardage;
+    private Double estimatedWeight;
+    private Integer numberOfSkeins;
+    public String getProjectName() { return projectName; }
+    public void setProjectName(String projectName) { this.projectName = projectName; }
+    public String getNeedleSize() { return needleSize; }
+    public void setNeedleSize(String needleSize) { this.needleSize = needleSize; }
+    public Double getWidth() { return width; }
+    public void setWidth(Double width) { this.width = width; }
+    public Double getHeight() { return height; }
+    public void setHeight(Double height) { this.height = height; }
+    public Double getEstimatedYardage() { return estimatedYardage; }
+    public void setEstimatedYardage(Double estimatedYardage) { this.estimatedYardage = estimatedYardage; }
+    public Double getEstimatedWeight() { return estimatedWeight; }
+    public void setEstimatedWeight(Double estimatedWeight) { this.estimatedWeight = estimatedWeight; }
+    public Integer getNumberOfSkeins() { return numberOfSkeins; }
+    public void setNumberOfSkeins(Integer numberOfSkeins) { this.numberOfSkeins = numberOfSkeins; }
+
+    @jakarta.persistence.ManyToOne
+    @jakarta.persistence.JoinColumn(name = "user_id")
+    private UserEntity user;
+    public UserEntity getUser() { return user; }
+    public void setUser(UserEntity user) { this.user = user; }
 }
+
+

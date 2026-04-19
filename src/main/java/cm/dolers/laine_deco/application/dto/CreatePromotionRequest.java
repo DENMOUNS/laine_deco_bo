@@ -1,5 +1,4 @@
 package cm.dolers.laine_deco.application.dto;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -18,3 +17,4 @@ public record CreatePromotionRequest(
     String brand,                   // null si pas de réduction par marque
     Long productId                  // null si pas de vente flash sur produit
 ) {}
+

@@ -13,3 +13,4 @@ public record ClientProfileResponse(
     String company,
     String country
 ) {}
+

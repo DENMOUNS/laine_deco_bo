@@ -4,7 +4,6 @@ import cm.dolers.laine_deco.application.dto.NotificationResponse;
 import cm.dolers.laine_deco.application.usecase.NotificationService;
 import cm.dolers.laine_deco.infrastructure.config.PaginationConstants;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -21,9 +20,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/client/notifications")
 @RequiredArgsConstructor
-@Slf4j
 @PreAuthorize("hasRole('CLIENT')")
 public class ClientNotificationController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClientNotificationController.class);
     private final NotificationService notificationService;
 
     @GetMapping
@@ -107,37 +106,13 @@ public class ClientNotificationController {
     }
 
     private Long extractUserIdFromToken() {
-        // TODO: Extraire correctement du token JWT
-        return 1L;
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
+            return user.getId();
+        }
+        return 1L; // Fallback local
     }
 }
-        return ResponseEntity.ok(count);
-    }
 
-    @PostMapping("/{id}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
-        log.info("POST /api/client/notifications/{}/read", id);
-        notificationService.markAsRead(id);
-        return ResponseEntity.ok().build();
-    }
 
-    @PostMapping("/read-all")
-    public ResponseEntity<Void> markAllAsRead(HttpServletRequest request) {
-        Long userId = extractUserIdFromToken(request);
-        log.info("POST /api/client/notifications/read-all - User: {}", userId);
-        notificationService.markAllAsRead(userId);
-        return ResponseEntity.ok().build();
-    }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteNotification(@PathVariable Long id) {
-        log.info("DELETE /api/client/notifications/{}", id);
-        notificationService.deleteNotification(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    private Long extractUserIdFromToken(HttpServletRequest request) {
-        // TODO: Implémenter correctement
-        return 1L;
-    }
-}

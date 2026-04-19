@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Error Tracker</title>
+    <style>
+        body { font-family: monospace; background: #0f0f0f; color: #e0e0e0; padding: 2rem; }
+        h1   { font-size: 1.4rem; font-weight: 500; margin-bottom: 1.5rem; color: #fff; }
+        .stats { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        .stat  { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: .75rem 1.25rem; }
+        .stat-val  { font-size: 1.8rem; font-weight: 500; }
+        .stat-val.red  { color: #e24b4a; }
+        .stat-val.amber{ color: #ef9f27; }
+        .stat-label{ font-size: .75rem; color: #888; }
+        .card { background: #161616; border: 1px solid #2a2a2a; border-radius: 8px; margin-bottom: .75rem; overflow: hidden; }
+        .card-header { display: flex; align-items: flex-start; gap: .75rem; padding: .75rem 1rem; cursor: pointer; }
+        .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+        .badge.ERROR { background: #3d1515; color: #e24b4a; }
+        .badge.WARN  { background: #3d2b00; color: #ef9f27; }
+        .card-body  { border-top: 1px solid #2a2a2a; padding: .75rem 1rem; display: none; }
+        .card.open .card-body { display: block; }
+        .stack { font-size: 11px; color: #aaa; white-space: pre-wrap; word-break: break-all; }
+        .meta  { font-size: 11px; color: #555; margin-top: .25rem; }
+        .msg   { font-size: 13px; color: #ccc; }
+        .clear-btn { background: #1a1a1a; border: 1px solid #444; color: #ccc; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        input[type=text] { background: #1a1a1a; border: 1px solid #333; color: #ccc; padding: 6px 12px; border-radius: 6px; font-size: 13px; width: 260px; }
+        .toolbar { display: flex; gap: .75rem; align-items: center; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+<h1>Error Tracker</h1>
+
+<div class="stats">
+    <div class="stat">
+        <div class="stat-label">Erreurs</div>
+        <div class="stat-val red" th:text="${totalErrors}">0</div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">Warnings</div>
+        <div class="stat-val amber" th:text="${totalWarns}">0</div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">Total</div>
+        <div class="stat-val" th:text="${errors.size()}">0</div>
+    </div>
+</div>
+
+<div class="toolbar">
+    <input type="text" id="search" placeholder="Filtrer..." oninput="filterCards()">
+    <form method="post" action="/admin/errors/clear">
+        <button class="clear-btn" type="submit">Vider</button>
+    </form>
+</div>
+
+<div id="list">
+    <div class="card" th:each="e : ${errors}" th:attr="data-msg=${e.message}">
+        <div class="card-header" onclick="this.parentElement.classList.toggle('open')">
+            <span class="badge" th:classappend="${e.level}" th:text="${e.level}">ERROR</span>
+            <div style="flex:1">
+                <div class="msg" th:text="${e.message}"></div>
+                <div class="meta">
+                    <span th:text="${e.timestamp}"></span> —
+                    <span th:text="${e.loggerName}"></span>
+                    <span th:if="${e.exceptionType}" th:text="'— ' + ${e.exceptionType}"></span>
+                </div>
+            </div>
+            <span style="color:#555;font-size:12px">▶</span>
+        </div>
+        <div class="card-body">
+            <pre class="stack" th:if="${e.stackTrace}" th:text="${e.stackTrace}"></pre>
+            <div class="meta" th:text="'Thread: ' + ${e.threadName}"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterCards() {
+    const q = document.getElementById('search').value.toLowerCase();
+    document.querySelectorAll('#list .card').forEach(c => {
+        c.style.display = c.dataset.msg.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+</script>
+</body>
+</html>

@@ -2,13 +2,12 @@ package cm.dolers.laine_deco.application.usecase.impl;
 
 import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.mapper.PaymentMapper;
-import cm.dolers.laine_deco.application.usecase.PaymentService;;
+import cm.dolers.laine_deco.application.usecase.PaymentService;
 import cm.dolers.laine_deco.domain.exception.ErrorCode;
 import cm.dolers.laine_deco.domain.exception.ValidationException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.*;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -20,8 +19,8 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PaymentServiceImpl implements PaymentService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PaymentServiceImpl.class);
     private final PaymentJpaRepository paymentRepository;
     private final OrderJpaRepository orderRepository;
     private final PaymentMapper paymentMapper;
@@ -42,19 +41,16 @@ public class PaymentServiceImpl implements PaymentService {
             var payment = new PaymentEntity();
             payment.setOrder(order);
             payment.setAmount(request.amount());
-            payment.setMethod(request.method());
+            payment.setMethod("CASH_ON_DELIVERY"); // Seul moyen de paiement accepté
             payment.setStatus("PENDING");
             payment.setTransactionId(generateTransactionId());
 
-            // TODO: Intégrer avec passerelle paiement réelle
-            payment.setStatus("SUCCESS");
-
             var saved = paymentRepository.save(payment);
-            log.info("Payment processed: {}", saved.getId());
+            log.info("Payment initialized for payment on delivery: {}", saved.getId());
             return paymentMapper.toResponse(saved);
         } catch (Exception ex) {
-            log.error("Error processing payment", ex);
-            throw new ValidationException(ErrorCode.PAYMENT_FAILED, "Error processing payment", ex);
+            log.error("Error initializing payment", ex);
+            throw new ValidationException(ErrorCode.PAYMENT_FAILED, "Error initializing payment", ex);
         }
     }
 
@@ -105,13 +101,17 @@ public class PaymentServiceImpl implements PaymentService {
         var payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new ValidationException(ErrorCode.PAYMENT_NOT_FOUND, "ID: " + paymentId));
 
-        if (!"SUCCESS".equals(payment.getStatus())) {
-            throw new ValidationException(ErrorCode.PAYMENT_NOT_SUCCESS, "Payment status is: " + payment.getStatus());
+        if ("SUCCESS".equals(payment.getStatus())) {
+            throw new ValidationException(ErrorCode.PAYMENT_NOT_SUCCESS, "Payment is already validated");
         }
-        log.info("Payment validated: {}", paymentId);
+        
+        payment.setStatus("SUCCESS");
+        paymentRepository.save(payment);
+        log.info("Payment validated (cash collected on delivery): {}", paymentId);
     }
 
     private String generateTransactionId() {
         return "TXN-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase();
     }
 }
+

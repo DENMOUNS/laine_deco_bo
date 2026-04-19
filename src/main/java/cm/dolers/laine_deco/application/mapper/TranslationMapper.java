@@ -1,14 +1,13 @@
 package cm.dolers.laine_deco.application.mapper;
 
 import cm.dolers.laine_deco.infrastructure.i18n.MessageService;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Mapper pour fournir les labels traduits pour les réponses API
+ * Mapper pour fournir les labels traduits pour les rÃ©ponses API
  */
 @Component
 @RequiredArgsConstructor
@@ -16,7 +15,7 @@ public class TranslationMapper {
     private final MessageService messageService;
 
     /**
-     * Récupère les labels traduits pour les produits
+     * RÃ©cupÃ¨re les labels traduits pour les produits
      */
     public Map<String, String> getProductLabels() {
         Map<String, String> labels = new HashMap<>();
@@ -34,7 +33,7 @@ public class TranslationMapper {
     }
 
     /**
-     * Récupère les labels traduits pour les catégories
+     * RÃ©cupÃ¨re les labels traduits pour les catÃ©gories
      */
     public Map<String, String> getCategoryLabels() {
         Map<String, String> labels = new HashMap<>();
@@ -45,7 +44,7 @@ public class TranslationMapper {
     }
 
     /**
-     * Récupère les labels traduits pour les commandes
+     * RÃ©cupÃ¨re les labels traduits pour les commandes
      */
     public Map<String, String> getOrderLabels() {
         Map<String, String> labels = new HashMap<>();
@@ -65,7 +64,7 @@ public class TranslationMapper {
     }
 
     /**
-     * Récupère les messages d'erreur traduits
+     * RÃ©cupÃ¨re les messages d'erreur traduits
      */
     public Map<String, String> getErrorMessages() {
         Map<String, String> messages = new HashMap<>();
@@ -78,7 +77,7 @@ public class TranslationMapper {
     }
 
     /**
-     * Récupère les messages de succès traduits
+     * RÃ©cupÃ¨re les messages de succÃ¨s traduits
      */
     public Map<String, String> getSuccessMessages() {
         Map<String, String> messages = new HashMap<>();
@@ -89,3 +88,4 @@ public class TranslationMapper {
         return messages;
     }
 }
+

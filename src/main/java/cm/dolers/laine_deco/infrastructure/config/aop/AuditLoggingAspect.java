@@ -4,7 +4,7 @@ import cm.dolers.laine_deco.application.usecase.AuditService;
 import cm.dolers.laine_deco.infrastructure.config.RequestInfoExtractor;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
@@ -16,8 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Optional;
-
 /**
  * Aspect AOP pour capturer automatiquement les actions importantes
  * et les enregistrer dans les logs d'audit
@@ -25,8 +23,9 @@ import java.util.Optional;
 @Aspect
 @Component
 @RequiredArgsConstructor
-@Slf4j
+
 public class AuditLoggingAspect {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuditLoggingAspect.class);
     private final AuditService auditService;
     private static final ThreadLocal<Long> START_TIME = ThreadLocal.withInitial(System::currentTimeMillis);
 
@@ -81,31 +80,37 @@ public class AuditLoggingAspect {
             long duration = System.currentTimeMillis() - START_TIME.get();
             START_TIME.remove();
 
-            // Récupérer l'utilisateur courant
+            // Rcuprer l'utilisateur courant
             Long userId = getCurrentUserId();
             String userEmail = getCurrentUserEmail();
 
-            // Récupérer les informations du client
+            // Rcuprer les informations du client
             HttpServletRequest request = getHttpRequest();
             String ipAddress = RequestInfoExtractor.getClientIpAddress(request);
             String userAgent = RequestInfoExtractor.getUserAgent(request);
 
-            // Extraire les informations de la méthode
+            // Extraire les informations de la mthode
             String className = joinPoint.getTarget().getClass().getSimpleName();
             String methodName = joinPoint.getSignature().getName();
             String description = String.format("%s.%s executed in %dms", className, methodName, duration);
 
+            String httpMethod = request != null ? request.getMethod() : "UNKNOWN";
+            String requestPath = request != null ? request.getRequestURI() : "UNKNOWN";
+            String queryString = request != null ? request.getQueryString() : null;
+
             // Logger dans AuditService
             auditService.logAction(
-                userId,
-                userEmail != null ? userEmail : "ANONYMOUS",
-                action,
-                className,
-                null, // entityId - pourrait être extrait des paramètres
-                description,
-                ipAddress,
-                userAgent
-            );
+                    userId,
+                    userEmail != null ? userEmail : "ANONYMOUS",
+                    action,
+                    className,
+                    null,
+                    description,
+                    httpMethod,
+                    requestPath,
+                    queryString,
+                    ipAddress,
+                    userAgent);
 
             log.debug("Audit logged: {} - {} - {}", action, className, methodName);
         } catch (Exception e) {
@@ -124,7 +129,8 @@ public class AuditLoggingAspect {
             if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
                 // Utiliser le username, pourrait être parsé comme ID
                 try {
-                    String username = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+                    String username = ((org.springframework.security.core.userdetails.UserDetails) principal)
+                            .getUsername();
                     return Long.parseLong(username);
                 } catch (NumberFormatException e) {
                     return null;

@@ -3,14 +3,11 @@ package cm.dolers.laine_deco.infrastructure.persistence.entity;
 import cm.dolers.laine_deco.domain.model.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.Instant;
 
 @Entity
 @Table(name = "order_status_history")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderStatusHistoryEntity {
@@ -26,12 +23,23 @@ public class OrderStatusHistoryEntity {
     @Column(nullable = false)
     private OrderStatus status;
 
-    @Column(columnDefinition = "TEXT")
     private String comment;
+
+    private String changedBy;
 
     @Column(nullable = false, updatable = false)
     private Instant changedAt = Instant.now();
 
-    @Column(length = 255)
-    private String changedBy;
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public OrderEntity getOrder() { return order; }
+    public void setOrder(OrderEntity order) { this.order = order; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
+    public String getComment() { return comment; }
+    public void setComment(String comment) { this.comment = comment; }
+    public String getChangedBy() { return changedBy; }
+    public void setChangedBy(String changedBy) { this.changedBy = changedBy; }
+    public Instant getChangedAt() { return changedAt; }
+    public void setChangedAt(Instant changedAt) { this.changedAt = changedAt; }
 }

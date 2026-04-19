@@ -100,3 +100,4 @@ public interface AuditService {
      */
     long countUserActions(Long userId, String action);
 }
+

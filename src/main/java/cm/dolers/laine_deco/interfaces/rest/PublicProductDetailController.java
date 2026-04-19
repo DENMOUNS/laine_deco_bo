@@ -7,7 +7,7 @@ import cm.dolers.laine_deco.application.mapper.ProductMapper;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,11 +23,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/public/products")
 @RequiredArgsConstructor
-@Slf4j
+
 public class PublicProductDetailController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PublicProductDetailController.class);
     private final ProductService productService;
     private final SimilarProductsService similarProductsService;
-    private final ProductJpaRepository productRepository;
+    private final ProductJpaRepository ProductJpaRepository;
     private final ProductMapper productMapper;
 
     /**
@@ -39,8 +40,8 @@ public class PublicProductDetailController {
         log.info("GET /api/public/products/{}/details - Fetching product details with similar products", id);
 
         // Récupérer le produit
-        ProductEntity productEntity = productRepository.findById(id)
-            .orElse(null);
+        ProductEntity productEntity = ProductJpaRepository.findById(id)
+                .orElse(null);
 
         if (productEntity == null) {
             log.warn("Product not found with ID: {}", id);
@@ -58,8 +59,8 @@ public class PublicProductDetailController {
 
         // Mapper les produits similaires
         var similarProductResponses = similarProducts.stream()
-            .map(productMapper::toResponse)
-            .toList();
+                .map(productMapper::toResponse)
+                .toList();
 
         log.info("Found {} similar products for productId: {}", similarProductResponses.size(), id);
 

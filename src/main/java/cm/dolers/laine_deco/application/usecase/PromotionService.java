@@ -50,16 +50,16 @@ public interface PromotionService {
      * Crée une nouvelle promotion
      */
     PromotionResponse createPromotion(String name, String description, String type,
-                                      java.time.Instant startDate, java.time.Instant endDate,
-                                      BigDecimal discountPercentage, BigDecimal discountAmount,
-                                      Long categoryId, String brand, Long productId);
+            java.time.Instant startDate, java.time.Instant endDate,
+            BigDecimal discountPercentage, BigDecimal discountAmount,
+            Long categoryId, String brand, Long productId);
 
     /**
      * Met à jour une promotion
      */
     PromotionResponse updatePromotion(Long promotionId, String name, String description,
-                                      java.time.Instant startDate, java.time.Instant endDate,
-                                      BigDecimal discountPercentage, BigDecimal discountAmount);
+            java.time.Instant startDate, java.time.Instant endDate,
+            BigDecimal discountPercentage, BigDecimal discountAmount);
 
     /**
      * Désactive une promotion

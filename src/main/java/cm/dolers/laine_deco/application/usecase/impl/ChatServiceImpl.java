@@ -9,7 +9,7 @@ import cm.dolers.laine_deco.domain.exception.UserException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.*;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,9 +19,11 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class ChatServiceImpl implements ChatService {
-    private final ChatConversationJpaRepository conversationRepository;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
+            .getLogger(cm.dolers.laine_deco.application.usecase.impl.ChatServiceImpl.class);
+    private final ConversationJpaRepository conversationRepository;
     private final ChatMessageJpaRepository messageRepository;
     private final UserJpaRepository userRepository;
     private final ChatMapper chatMapper;
@@ -33,12 +35,12 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public ChatConversationResponse createConversation(Long clientId) {
         log.info("Creating chat conversation for client: {}", clientId);
-        
+
         var user = userRepository.findById(clientId)
-            .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "ID: " + clientId));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "ID: " + clientId));
 
         try {
-            var conversation = new ChatConversationEntity();
+            var conversation = new ConversationEntity();
             conversation.setClient(user);
             conversation.setStatus("OPEN");
             conversation.setUnreadCount(0);
@@ -56,7 +58,7 @@ public class ChatServiceImpl implements ChatService {
     @Transactional(readOnly = true)
     public ChatConversationResponse getConversationById(Long conversationId) {
         var conversation = conversationRepository.findById(conversationId)
-            .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + conversationId));
+                .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + conversationId));
         return chatMapper.toConversationResponse(conversation);
     }
 
@@ -64,33 +66,37 @@ public class ChatServiceImpl implements ChatService {
     @Transactional(readOnly = true)
     public Page<ChatConversationResponse> getClientConversations(Long clientId, Pageable pageable) {
         return conversationRepository.findByClientId(clientId, pageable)
-            .map(chatMapper::toConversationResponse);
+                .map(chatMapper::toConversationResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ChatConversationResponse> getOpenConversations(Pageable pageable) {
         log.info("Fetching open conversations");
-        return conversationRepository.findByStatusIn(new String[]{"OPEN", "PENDING", "IN_PROGRESS"}, pageable)
-            .map(chatMapper::toConversationResponse);
+        return conversationRepository.findByStatusIn(new String[] { "OPEN", "PENDING", "IN_PROGRESS" }, pageable)
+                .map(chatMapper::toConversationResponse);
     }
 
     @Override
     @Transactional
     public ChatConversationResponse assignConversation(Long conversationId, Long agentId) {
+
         log.info("Assigning conversation {} to agent {}", conversationId, agentId);
 
         var conversation = conversationRepository.findById(conversationId)
-            .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + conversationId));
+                .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + conversationId));
 
         var agent = userRepository.findById(agentId)
-            .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "Agent ID: " + agentId));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "Agent ID: " + agentId));
 
-        conversation.setAssignedAgent(agent);
+        conversation.setAgent(agent);
+
         conversation.setStatus("IN_PROGRESS");
-        
+
         var saved = conversationRepository.save(conversation);
+
         log.info("Conversation assigned successfully");
+
         return chatMapper.toConversationResponse(saved);
     }
 
@@ -100,7 +106,7 @@ public class ChatServiceImpl implements ChatService {
         log.info("Updating conversation {} status to {}", conversationId, newStatus);
 
         var conversation = conversationRepository.findById(conversationId)
-            .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + conversationId));
+                .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + conversationId));
 
         conversation.setStatus(newStatus);
         if ("RESOLVED".equals(newStatus)) {
@@ -119,8 +125,8 @@ public class ChatServiceImpl implements ChatService {
     public void closeConversation(Long conversationId) {
         log.info("Closing conversation: {}", conversationId);
         var conversation = conversationRepository.findById(conversationId)
-            .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + conversationId));
-        
+                .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + conversationId));
+
         conversation.setStatus("CLOSED");
         conversation.setClosedAt(Instant.now());
         conversationRepository.save(conversation);
@@ -134,7 +140,7 @@ public class ChatServiceImpl implements ChatService {
         log.info("Sending message to conversation: {}", request.conversationId());
 
         var conversation = conversationRepository.findById(request.conversationId())
-            .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + request.conversationId()));
+                .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + request.conversationId()));
 
         try {
             var message = new ChatMessageEntity();
@@ -145,7 +151,7 @@ public class ChatServiceImpl implements ChatService {
 
             var saved = messageRepository.save(message);
             log.info("Message sent: {}", saved.getId());
-            
+
             // Mettre à jour le timestamp de dernier message
             conversation.setLastMessageAt(Instant.now());
             conversationRepository.save(conversation);
@@ -163,34 +169,34 @@ public class ChatServiceImpl implements ChatService {
         log.info("Admin sending reply to conversation: {}", request.conversationId());
 
         var conversation = conversationRepository.findById(request.conversationId())
-            .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + request.conversationId()));
+                .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + request.conversationId()));
 
         try {
             var message = new ChatMessageEntity();
             message.setConversation(conversation);
             message.setMessage(request.message());
-            message.setSenderType(request.senderType());  // ADMIN ou FINANCE
+            message.setSenderType(request.senderType()); // ADMIN ou FINANCE
             message.setIsRead(false);
 
             var saved = messageRepository.save(message);
             log.info("Admin reply sent: {}", saved.getId());
-            
+
             // Marquer la conversation comme IN_PROGRESS si elle était en attente
             if ("PENDING".equals(conversation.getStatus()) || "OPEN".equals(conversation.getStatus())) {
                 conversation.setStatus("IN_PROGRESS");
             }
-            
+
             conversation.setLastMessageAt(Instant.now());
             conversationRepository.save(conversation);
 
             // Créer automatiquement une notification de réponse pour le client
             var clientNotif = new ChatReplyNotificationRequest(
-                conversation.getId(),
-                saved.getSenderId(),
-                saved.getSenderName(),
-                request.senderType(),
-                request.message(),
-                true  // isFromAdmin
+                    conversation.getId(),
+                    saved.getSenderId(),
+                    saved.getSenderName(),
+                    request.senderType(),
+                    request.message(),
+                    true // isFromAdmin
             );
             notificationService.notifyOnChatReply(clientNotif);
 
@@ -205,21 +211,20 @@ public class ChatServiceImpl implements ChatService {
     @Transactional(readOnly = true)
     public Page<ChatMessageResponse> getConversationMessages(Long conversationId, Pageable pageable) {
         return messageRepository.findByConversationId(conversationId, pageable)
-            .map(chatMapper::toMessageResponse);
+                .map(chatMapper::toMessageResponse);
     }
 
     @Override
     @Transactional
     public void markMessageAsRead(Long messageId) {
         var message = messageRepository.findById(messageId)
-            .orElseThrow(() -> new UserException(ErrorCode.CHAT_MSG_NOT_FOUND, "ID: " + messageId));
+                .orElseThrow(() -> new UserException(ErrorCode.CHAT_MSG_NOT_FOUND, "ID: " + messageId));
         message.setIsRead(true);
         message.setReadAt(Instant.now());
         messageRepository.save(message);
         log.info("Message marked as read: {}", messageId);
     }
 
-    @Override
     @Transactional
     public void markAllMessagesAsRead(Long conversationId) {
         log.info("Marking all messages as read for conversation: {}", conversationId);
@@ -237,27 +242,14 @@ public class ChatServiceImpl implements ChatService {
         return messageRepository.countByConversationIdAndIsReadFalse(conversationId);
     }
 
-    @Override
     @Transactional(readOnly = true)
     public Long getTotalUnreadMessages(Long userId) {
         return messageRepository.countUnreadMessagesForUser(userId);
     }
-}
-    }
 
     @Override
-    @Transactional
-    public void closeConversation(Long conversationId) {
-        var conversation = conversationRepository.findById(conversationId)
-            .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "ID: " + conversationId));
-        conversation.setStatus("CLOSED");
-        conversationRepository.save(conversation);
-        log.info("Conversation closed: {}", conversationId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Long getUnreadMessageCount(Long conversationId) {
-        return messageRepository.countByConversationIdAndIsReadFalse(conversationId);
+    public org.springframework.data.domain.Page<ChatConversationResponse> getUserConversations(Long userId,
+            org.springframework.data.domain.Pageable pageable) {
+        return org.springframework.data.domain.Page.empty();
     }
 }

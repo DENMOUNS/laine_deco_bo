@@ -12,29 +12,25 @@ import cm.dolers.laine_deco.domain.model.OrderStatus;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.*;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class OrderServiceImpl implements OrderService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(OrderServiceImpl.class);
     private final OrderJpaRepository orderRepository;
-    private final OrderDetailRepository orderDetailRepository;
+    // private final OrderDetailJpaRepository OrderDetailJpaRepository;
     private final UserJpaRepository userRepository;
-    private final ProductJpaRepository productRepository;
+    private final ProductJpaRepository ProductJpaRepository;
     private final OrderMapper orderMapper;
     private final CouponService couponService;
     private final NotificationService notificationService;
@@ -59,12 +55,12 @@ public class OrderServiceImpl implements OrderService {
             // 1. Créer et préparer l'entité Order
             var order = new OrderEntity();
             order.setUser(userId != null ? userRepository.findById(userId)
-                .orElseThrow(() -> new OrderException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId))
-                : null);
+                    .orElseThrow(() -> new OrderException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId))
+                    : null);
             order.setOrderDate(LocalDate.now());
             order.setPaymentMethod(request.paymentMethod() != null ? request.paymentMethod() : "CASH_ON_DELIVERY");
             order.setStatus(OrderStatus.PENDING);
-            
+
             // Générer le numéro de commande unique
             String orderNumber = generateOrderNumber();
             order.setOrderNumber(orderNumber);
@@ -84,12 +80,14 @@ public class OrderServiceImpl implements OrderService {
             // 2. Valider les produits et calculer le subtotal
             BigDecimal subtotal = BigDecimal.ZERO;
             for (var item : request.items()) {
-                var product = productRepository.findById(item.productId())
-                    .orElseThrow(() -> new OrderException(ErrorCode.PRODUCT_NOT_FOUND, "Product ID: " + item.productId()));
+                var product = ProductJpaRepository.findById(item.productId())
+                        .orElseThrow(() -> new OrderException(ErrorCode.PRODUCT_NOT_FOUND,
+                                "Product ID: " + item.productId()));
 
                 if (product.getStockQuantity() < item.quantity()) {
-                    throw new OrderException(ErrorCode.PRODUCT_OUT_OF_STOCK, 
-                        "Product: " + product.getName() + " (need: " + item.quantity() + ", available: " + product.getStockQuantity() + ")");
+                    throw new OrderException(ErrorCode.PRODUCT_OUT_OF_STOCK,
+                            "Product: " + product.getName() + " (need: " + item.quantity() + ", available: "
+                                    + product.getStockQuantity() + ")");
                 }
 
                 // Créer le détail de commande avec le prix unitaire
@@ -114,7 +112,7 @@ public class OrderServiceImpl implements OrderService {
                     try {
                         CouponResponse coupon = couponService.getCouponByCode(request.couponCode());
                         couponService.validateCoupon(request.couponCode());
-                        
+
                         order.setCouponCode(coupon.code());
                         order.setCouponType(coupon.type());
 
@@ -150,15 +148,15 @@ public class OrderServiceImpl implements OrderService {
             // 6. Sauvegarder l'ordre
             var saved = orderRepository.save(order);
             log.info("Order created: ID={}, user={}, total={}", saved.getId(), userId, saved.getTotal());
-            
+
             // Créer le premier enregistrement d'historique de statut (PENDING)
             createStatusHistory(saved, OrderStatus.PENDING, "Order created");
 
             // 7. Décrémenter le stock des produits
             for (var item : request.items()) {
-                var product = productRepository.findById(item.productId()).get();
+                var product = ProductJpaRepository.findById(item.productId()).get();
                 product.setStockQuantity(product.getStockQuantity() - item.quantity());
-                productRepository.save(product);
+                ProductJpaRepository.save(product);
             }
 
             // 8. Déclencher les notifications
@@ -186,20 +184,23 @@ public class OrderServiceImpl implements OrderService {
             case "ALL_PRODUCTS":
                 // Remise en pourcentage sur tous les produits
                 if (coupon.discountPercentage() != null && coupon.discountPercentage() > 0) {
-                    BigDecimal percentage = BigDecimal.valueOf(coupon.discountPercentage()).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
+                    BigDecimal percentage = BigDecimal.valueOf(coupon.discountPercentage())
+                            .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
                     return order.getSubtotal().multiply(percentage).setScale(2, RoundingMode.HALF_UP);
                 }
                 break;
 
             case "SINGLE_PRODUCT":
                 // Remise en pourcentage sur un seul produit
-                if (coupon.discountPercentage() != null && coupon.discountPercentage() > 0 && coupon.applicableProductId() != null) {
+                if (coupon.discountPercentage() != null && coupon.discountPercentage() > 0
+                        && coupon.applicableProductId() != null) {
                     BigDecimal productLineTotal = order.getDetails().stream()
-                        .filter(d -> d.getProduct().getId().equals(coupon.applicableProductId()))
-                        .map(d -> d.getPrice().multiply(BigDecimal.valueOf(d.getQuantity())))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-                    
-                    BigDecimal percentage = BigDecimal.valueOf(coupon.discountPercentage()).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
+                            .filter(d -> d.getProduct().getId().equals(coupon.applicableProductId()))
+                            .map(d -> d.getPrice().multiply(BigDecimal.valueOf(d.getQuantity())))
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    BigDecimal percentage = BigDecimal.valueOf(coupon.discountPercentage())
+                            .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
                     return productLineTotal.multiply(percentage).setScale(2, RoundingMode.HALF_UP);
                 }
                 break;
@@ -222,7 +223,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * Déclenche les notifications pour la nouvelle commande et ajoute les points de loyauté
+     * Déclenche les notifications pour la nouvelle commande et ajoute les points de
+     * loyauté
      */
     private void triggerOrderNotifications(OrderEntity order, Long userId) {
         try {
@@ -235,21 +237,19 @@ public class OrderServiceImpl implements OrderService {
             // Notification au client (si authentifié)
             if (userId != null) {
                 var notification = new OrderStatusChangeNotificationRequest(
-                    order.getId(),
-                    "CREATED",
-                    "PENDING",
-                    "Your order #" + order.getId() + " has been created and is pending confirmation"
-                );
+                        order.getId(),
+                        "CREATED",
+                        "PENDING",
+                        "Your order #" + order.getId() + " has been created and is pending confirmation");
                 notificationService.notifyOrderStatusChange(notification);
             }
 
             // Notification au rôle FINANCE et ADMIN
             var adminNotification = new OrderStatusChangeNotificationRequest(
-                order.getId(),
-                "PENDING",
-                "PENDING",
-                "New order #" + order.getId() + " - " + (userId != null ? "User #" + userId : "Guest user")
-            );
+                    order.getId(),
+                    "PENDING",
+                    "PENDING",
+                    "New order #" + order.getId() + " - " + (userId != null ? "User #" + userId : "Guest user"));
             notificationService.notifyOrderStatusChange(adminNotification);
         } catch (Exception ex) {
             log.error("Error sending order notifications", ex);
@@ -260,7 +260,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public OrderResponse getOrderById(Long orderId) {
         var order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new OrderException(ErrorCode.ORDER_NOT_FOUND, "ID: " + orderId));
+                .orElseThrow(() -> new OrderException(ErrorCode.ORDER_NOT_FOUND, "ID: " + orderId));
         return orderMapper.toResponse(order);
     }
 
@@ -268,20 +268,20 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public Page<OrderResponse> getUserOrders(Long userId, Pageable pageable) {
         return orderRepository.findByUserId(userId, pageable)
-            .map(orderMapper::toResponse);
+                .map(orderMapper::toResponse);
     }
 
     @Override
     @Transactional
     public void updateOrderStatus(Long orderId, String status) {
         var order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new OrderException(ErrorCode.ORDER_NOT_FOUND, "ID: " + orderId));
+                .orElseThrow(() -> new OrderException(ErrorCode.ORDER_NOT_FOUND, "ID: " + orderId));
 
         try {
             OrderStatus newStatus = OrderStatus.valueOf(status);
             order.setStatus(newStatus);
             orderRepository.save(order);
-            
+
             // Enregistrer l'historique du changement de statut
             createStatusHistory(order, newStatus, "Status updated by system");
             log.info("Order status updated: {} -> {}", orderId, status);
@@ -294,7 +294,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void cancelOrder(Long orderId) {
         var order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new OrderException(ErrorCode.ORDER_NOT_FOUND, "ID: " + orderId));
+                .orElseThrow(() -> new OrderException(ErrorCode.ORDER_NOT_FOUND, "ID: " + orderId));
 
         if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) {
             throw new OrderException(ErrorCode.ORDER_CANNOT_CANCEL, "Cannot cancel " + order.getStatus() + " order");
@@ -312,15 +312,15 @@ public class OrderServiceImpl implements OrderService {
         java.time.YearMonth yearMonth = java.time.YearMonth.now();
         // Obtenir le dernier numéro pour ce mois
         Long countThisMonth = orderRepository.countByOrderDateBetween(
-            yearMonth.atDay(1),
-            yearMonth.atEndOfMonth()
-        );
+                yearMonth.atDay(1),
+                yearMonth.atEndOfMonth());
         String sequenceNumber = String.format("%05d", countThisMonth + 1);
         return "CMD-" + yearMonth + "-" + sequenceNumber;
     }
 
     /**
-     * Crée un enregistrement d'historique pour le changement de statut de la commande
+     * Crée un enregistrement d'historique pour le changement de statut de la
+     * commande
      */
     private void createStatusHistory(OrderEntity order, OrderStatus status, String comment) {
         try {

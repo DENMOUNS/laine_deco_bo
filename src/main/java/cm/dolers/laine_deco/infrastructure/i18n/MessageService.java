@@ -1,7 +1,7 @@
 package cm.dolers.laine_deco.infrastructure.i18n;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -14,15 +14,17 @@ import java.util.Locale;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class MessageService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
+            .getLogger(cm.dolers.laine_deco.infrastructure.i18n.MessageService.class);
     private final MessageSource messageSource;
 
     /**
      * Récupère un message traduit pour la locale actuelle
      */
     public String getMessage(String code) {
-        return getMessage(code, new Object[]{});
+        return getMessage(code, new Object[] {});
     }
 
     /**
@@ -42,7 +44,7 @@ public class MessageService {
      * Récupère un message traduit pour une locale spécifique
      */
     public String getMessage(String code, Locale locale) {
-        return getMessage(code, new Object[]{}, locale);
+        return getMessage(code, new Object[] {}, locale);
     }
 
     /**

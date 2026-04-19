@@ -1,25 +1,20 @@
 package cm.dolers.laine_deco.application.mapper.impl;
 
-import cm.dolers.laine_deco.application.dto.UserLoyaltyResponse;
-import cm.dolers.laine_deco.application.dto.UserBadgeResponse;
-import cm.dolers.laine_deco.application.dto.LoyaltyRedemptionResponse;
+import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.mapper.LoyaltyMapper;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.UserLoyaltyProfile;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.UserBadge;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.LoyaltyRedemption;
+import cm.dolers.laine_deco.infrastructure.persistence.entity.*;
 import org.springframework.stereotype.Component;
 
 @Component
 public class LoyaltyMapperImpl implements LoyaltyMapper {
-
     @Override
     public UserLoyaltyResponse toResponse(UserLoyaltyProfile profile) {
         return new UserLoyaltyResponse(
-            profile.getUser().getId(),
+            profile.getUser() != null ? profile.getUser().getId() : null,
             profile.getTotalPoints(),
             profile.getAvailablePoints(),
-            profile.getCurrentTier() != null ? profile.getCurrentTier().toString() : "STANDARD",
-            profile.getCurrentTier() != null ? profile.getCurrentTier().getDescription() : "",
+            profile.getCurrentTier() != null ? profile.getCurrentTier().name() : null,
+            null, // tierDescription
             profile.getTierReachedAt(),
             profile.getTotalSpent(),
             profile.getOrderCount(),
@@ -28,13 +23,12 @@ public class LoyaltyMapperImpl implements LoyaltyMapper {
     }
 
     @Override
-    public UserBadgeResponse toResponse(UserBadge badge) {
+    public UserBadgeResponse toResponse(UserBadgeEntity badge) {
         return new UserBadgeResponse(
             badge.getId(),
-            badge.getBadgeType() != null ? badge.getBadgeType().toString() : null,
-            badge.getBadgeType() != null ? badge.getBadgeType().getLabel() : null,
-            badge.getBadgeType() != null ? badge.getBadgeType().getIcon() : null,
-            badge.getBadgeType() != null ? badge.getBadgeType().getDescription() : null,
+            badge.getUser() != null ? badge.getUser().getId() : null,
+            badge.getBadge() != null ? badge.getBadge().getId() : null,
+            badge.getBadge() != null ? badge.getBadge().getName() : null,
             badge.getEarnedAt()
         );
     }
@@ -43,11 +37,11 @@ public class LoyaltyMapperImpl implements LoyaltyMapper {
     public LoyaltyRedemptionResponse toResponse(LoyaltyRedemption redemption) {
         return new LoyaltyRedemptionResponse(
             redemption.getId(),
-            redemption.getRewardType() != null ? redemption.getRewardType().toString() : null,
-            redemption.getRewardType() != null ? redemption.getRewardType().getLabel() : null,
+            redemption.getRewardType() != null ? redemption.getRewardType().name() : null,
+            null, // rewardLabel
             redemption.getPointsUsed(),
             redemption.getRewardValue(),
-            redemption.getStatus() != null ? redemption.getStatus().toString() : null,
+            redemption.getStatus() != null ? redemption.getStatus().name() : null,
             redemption.getAppliedAt(),
             redemption.getExpiresAt(),
             redemption.getNotes(),

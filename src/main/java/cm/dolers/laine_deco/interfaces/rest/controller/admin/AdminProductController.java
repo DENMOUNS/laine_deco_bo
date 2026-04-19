@@ -4,9 +4,6 @@ import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,9 +16,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/products")
 @RequiredArgsConstructor
-@Slf4j
 @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
 public class AdminProductController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminProductController.class);
     private final ProductService productService;
 
     @PostMapping
@@ -73,3 +70,5 @@ public class AdminProductController {
         return ResponseEntity.ok(results);
     }
 }
+
+

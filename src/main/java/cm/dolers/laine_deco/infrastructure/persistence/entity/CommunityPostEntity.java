@@ -92,4 +92,21 @@ public class CommunityPostEntity {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    private String title;
+    private String content;
+    private int likesCount;
+    private int commentsCount;
+    private int viewsCount;
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
+    public int getLikesCount() { return likesCount; }
+    public void setLikesCount(int likesCount) { this.likesCount = likesCount; }
+    public int getCommentsCount() { return commentsCount; }
+    public void setCommentsCount(int commentsCount) { this.commentsCount = commentsCount; }
+    public int getViewsCount() { return viewsCount; }
+    public void setViewsCount(int viewsCount) { this.viewsCount = viewsCount; }
 }
+

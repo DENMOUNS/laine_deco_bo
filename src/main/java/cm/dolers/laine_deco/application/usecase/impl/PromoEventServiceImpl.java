@@ -8,7 +8,6 @@ import cm.dolers.laine_deco.domain.exception.ValidationException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.PromoEventEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.PromoEventJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,8 +17,8 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PromoEventServiceImpl implements PromoEventService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PromoEventServiceImpl.class);
     private final PromoEventJpaRepository promoEventRepository;
     private final PromoEventMapper promoEventMapper;
 
@@ -33,8 +32,8 @@ public class PromoEventServiceImpl implements PromoEventService {
             promoEvent.setDescription(request.description());
             promoEvent.setDiscountPercentage(request.discountPercentage());
             promoEvent.setDiscountAmount(request.discountAmount());
-            promoEvent.setStartDate(request.startDate());
-            promoEvent.setEndDate(request.endDate());
+            promoEvent.setStartDate(java.time.LocalDate.from(request.startDate().atZone(java.time.ZoneId.systemDefault())));
+            promoEvent.setEndDate(java.time.LocalDate.from(request.endDate().atZone(java.time.ZoneId.systemDefault())));
             promoEvent.setStatus("PENDING");
 
             var saved = promoEventRepository.save(promoEvent);
@@ -77,8 +76,8 @@ public class PromoEventServiceImpl implements PromoEventService {
         promoEvent.setDescription(request.description());
         promoEvent.setDiscountPercentage(request.discountPercentage());
         promoEvent.setDiscountAmount(request.discountAmount());
-        promoEvent.setStartDate(request.startDate());
-        promoEvent.setEndDate(request.endDate());
+        promoEvent.setStartDate(java.time.LocalDate.from(request.startDate().atZone(java.time.ZoneId.systemDefault())));
+        promoEvent.setEndDate(java.time.LocalDate.from(request.endDate().atZone(java.time.ZoneId.systemDefault())));
 
         var updated = promoEventRepository.save(promoEvent);
         log.info("Promo event updated: {}", eventId);
@@ -114,4 +113,15 @@ public class PromoEventServiceImpl implements PromoEventService {
         promoEventRepository.save(promoEvent);
         log.info("Promo event deactivated: {}", eventId);
     }
+
+    @Override
+    public org.springframework.data.domain.Page<cm.dolers.laine_deco.application.dto.PromoEventResponse> getFeaturedPromoEvents(org.springframework.data.domain.Pageable pageable) {
+        return org.springframework.data.domain.Page.empty();
+    }
 }
+
+
+
+
+
+

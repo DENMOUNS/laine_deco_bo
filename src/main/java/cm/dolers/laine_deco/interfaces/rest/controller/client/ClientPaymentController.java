@@ -4,7 +4,7 @@ import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +17,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/client/payments")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasRole('CLIENT')")
 public class ClientPaymentController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClientPaymentController.class);
     private final PaymentService paymentService;
 
     @PostMapping

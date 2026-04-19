@@ -1,19 +1,11 @@
 package cm.dolers.laine_deco.application.dto;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateMaintenanceGuideRequest {
-    private String title;
-    private String content;
-    private String instructions;
-    private Long categoryId;
-    private String brand;
-    private Long productId;
-    private byte[] image;
-    private Boolean isActive = true;
+public record CreateMaintenanceGuideRequest(String title, String content, String instructions, String image, Boolean isActive, Long categoryId, String brand, Long productId) {
+    public String getTitle() { return title; }
+    public String getContent() { return content; }
+    public String getInstructions() { return instructions; }
+    public String getImage() { return image; }
+    public Boolean getIsActive() { return isActive; }
+    public Long getCategoryId() { return categoryId; }
+    public String getBrand() { return brand; }
+    public Long getProductId() { return productId; }
 }

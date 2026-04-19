@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.util.List;
 
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLogEntity, Long> {

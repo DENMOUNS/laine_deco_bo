@@ -3,7 +3,7 @@ package cm.dolers.laine_deco.interfaces.rest.controller.admin;
 import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.ReviewService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/reviews")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasAnyRole('ADMIN')")
 public class AdminReviewController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminReviewController.class);
     private final ReviewService reviewService;
 
     @GetMapping("/{reviewId}")

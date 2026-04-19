@@ -43,4 +43,19 @@ public interface ProductJpaRepository extends JpaRepository<ProductEntity, Long>
     // Auto-complétion (pour les suggestions de recherche)
     @Query(value = "SELECT DISTINCT p.name FROM ProductEntity p WHERE LOWER(p.name) LIKE LOWER(CONCAT(:prefix, '%')) LIMIT 10", nativeQuery = false)
     List<String> findProductNameSuggestions(@Param("prefix") String prefix);
+
+    
+
+    @org.springframework.data.jpa.repository.Query("SELECT p FROM ProductEntity p ORDER BY p.createdAt DESC")
+    org.springframework.data.domain.Page<cm.dolers.laine_deco.infrastructure.persistence.entity.ProductEntity> findNewProducts(org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT p FROM ProductEntity p WHERE p.category.id = :categoryId")
+    org.springframework.data.domain.Page<cm.dolers.laine_deco.infrastructure.persistence.entity.ProductEntity> findByCategoryIdAndAvailable(@org.springframework.data.repository.query.Param("categoryId") Long categoryId, org.springframework.data.domain.Pageable pageable);
+
+    long countByCategory(cm.dolers.laine_deco.infrastructure.persistence.entity.CategoryEntity category);
 }
+
+
+
+
+

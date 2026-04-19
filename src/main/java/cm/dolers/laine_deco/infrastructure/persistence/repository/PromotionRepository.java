@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface PromotionRepository extends JpaRepository<PromotionEntity, Long> {

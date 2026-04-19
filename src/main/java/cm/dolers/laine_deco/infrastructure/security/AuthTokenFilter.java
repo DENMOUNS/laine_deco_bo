@@ -8,9 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,12 +28,49 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
+        
+        System.out.println(">>> FILTER PATH: " + request.getServletPath());
+        System.out.println(">>> AUTH HEADER: " + request.getHeader("Authorization"));
+        
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             authService.getUserFromToken(token).ifPresent(this::setAuthentication);
         }
         chain.doFilter(request, response);
+    }
+
+    // @Override
+    // protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+    //         throws ServletException, IOException {
+    //     String authHeader = request.getHeader("Authorization");
+    //     if (authHeader != null && authHeader.startsWith("Bearer ")) {
+    //         String token = authHeader.substring(7);
+    //         authService.getUserFromToken(token).ifPresent(this::setAuthentication);
+    //     }
+    //     chain.doFilter(request, response);
+    // }
+
+    // @Override
+    // protected boolean shouldNotFilter(HttpServletRequest request) {
+    //     String path = request.getServletPath();
+    //     return path.startsWith("/admin/errors");
+    // }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        String dispatchType = request.getDispatcherType().name();
+    
+    // Ignorer tous les dispatches ERROR
+        if ("ERROR".equals(dispatchType)) return true;
+        
+        return path.startsWith("/admin/errors")
+            || path.equals("/error")
+            || path.equals("/favicon.ico")
+            || path.startsWith("/css/")
+            || path.startsWith("/js/")
+            || path.startsWith("/images/");
     }
 
     private void setAuthentication(UserEntity user) {

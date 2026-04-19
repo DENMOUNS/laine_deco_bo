@@ -98,10 +98,6 @@ public interface NotificationService {
      * Récupérer notifications par type
      */
     Page<NotificationResponse> getNotificationsByType(Long userId, String type, Pageable pageable);
-}
-
-    void deleteNotification(Long notificationId);
-    
     /**
      * Nettoyer les vieilles notifications
      */

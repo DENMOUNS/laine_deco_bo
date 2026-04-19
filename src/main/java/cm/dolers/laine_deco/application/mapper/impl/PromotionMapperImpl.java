@@ -1,20 +1,20 @@
 package cm.dolers.laine_deco.application.mapper.impl;
 
-import cm.dolers.laine_deco.application.dto.PromotionResponse;
 import cm.dolers.laine_deco.application.dto.CreatePromotionRequest;
+import cm.dolers.laine_deco.application.dto.PromotionResponse;
 import cm.dolers.laine_deco.application.mapper.PromotionMapper;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.PromotionEntity;
-import cm.dolers.laine_deco.infrastructure.persistence.repository.CategoryRepository;
-import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductJpaRepository;
 import cm.dolers.laine_deco.domain.model.PromotionType;
+import cm.dolers.laine_deco.infrastructure.persistence.entity.PromotionEntity;
+import cm.dolers.laine_deco.infrastructure.persistence.repository.CategoryJpaRepository;
+import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class PromotionMapperImpl implements PromotionMapper {
-    private final CategoryRepository categoryRepository;
-    private final ProductJpaRepository productRepository;
+    private final CategoryJpaRepository CategoryJpaRepository;
+    private final ProductJpaRepository ProductJpaRepository;
 
     @Override
     public PromotionResponse toResponse(PromotionEntity promotion) {
@@ -51,18 +51,19 @@ public class PromotionMapperImpl implements PromotionMapper {
         promotion.setBrand(request.brand());
         promotion.setIsActive(true);
 
-        // Récupérer la catégorie si fournie
+        // RÃ©cupÃ©rer la catÃ©gorie si fournie
         if (request.categoryId() != null) {
-            var category = categoryRepository.findById(request.categoryId());
+            var category = CategoryJpaRepository.findById(request.categoryId());
             category.ifPresent(promotion::setCategory);
         }
 
-        // Récupérer le produit si fourni
+        // RÃ©cupÃ©rer le produit si fourni
         if (request.productId() != null) {
-            var product = productRepository.findById(request.productId());
+            var product = ProductJpaRepository.findById(request.productId());
             product.ifPresent(promotion::setProduct);
         }
 
         return promotion;
     }
 }
+

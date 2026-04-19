@@ -1,6 +1,7 @@
 package cm.dolers.laine_deco.domain.model;
 
 public enum RMAStatus {
+    RESOLVED("Résolu"),
     PENDING("En attente"),
     APPROVED("Approuvé"),
     RECEIVED("Reçu"),
@@ -17,3 +18,4 @@ public enum RMAStatus {
         return label;
     }
 }
+

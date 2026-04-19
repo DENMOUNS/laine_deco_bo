@@ -1,5 +1,6 @@
 package cm.dolers.laine_deco.interfaces.rest;
 
+
 import cm.dolers.laine_deco.application.dto.NewsletterSubscriptionResponse;
 import cm.dolers.laine_deco.application.dto.SubscribeNewsletterRequest;
 import cm.dolers.laine_deco.application.usecase.NewsletterService;
@@ -8,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/public/newsletter")
@@ -40,3 +40,4 @@ public class PublicNewsletterController {
         return ResponseEntity.ok(isSubscribed);
     }
 }
+

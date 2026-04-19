@@ -5,7 +5,7 @@ import cm.dolers.laine_deco.application.dto.PromotionResponse;
 import cm.dolers.laine_deco.application.usecase.PromotionService;
 import cm.dolers.laine_deco.infrastructure.i18n.MessageService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,9 +26,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/promotions")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminPromotionController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminPromotionController.class);
     private final PromotionService promotionService;
     private final MessageService messageService;
 
@@ -64,18 +65,17 @@ public class AdminPromotionController {
 
         try {
             PromotionResponse response = promotionService.createPromotion(
-                request.name(),
-                request.description(),
-                request.type(),
-                request.startDate(),
-                request.endDate(),
-                request.discountPercentage(),
-                request.discountAmount(),
-                request.categoryId(),
-                request.brand(),
-                request.productId()
-            );
-            
+                    request.name(),
+                    request.description(),
+                    request.type(),
+                    request.startDate(),
+                    request.endDate(),
+                    request.discountPercentage(),
+                    request.discountAmount(),
+                    request.categoryId(),
+                    request.brand(),
+                    request.productId());
+
             log.info("Promotion created successfully: {}", request.name());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -90,22 +90,20 @@ public class AdminPromotionController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<PromotionResponse> updatePromotion(
-        @PathVariable Long id,
-        @RequestBody CreatePromotionRequest request
-    ) {
+            @PathVariable Long id,
+            @RequestBody CreatePromotionRequest request) {
         log.info("PUT /api/admin/promotions/{} - Updating promotion", id);
 
         try {
             PromotionResponse response = promotionService.updatePromotion(
-                id,
-                request.name(),
-                request.description(),
-                request.startDate(),
-                request.endDate(),
-                request.discountPercentage(),
-                request.discountAmount()
-            );
-            
+                    id,
+                    request.name(),
+                    request.description(),
+                    request.startDate(),
+                    request.endDate(),
+                    request.discountPercentage(),
+                    request.discountAmount());
+
             log.info("Promotion updated successfully: {}", id);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {

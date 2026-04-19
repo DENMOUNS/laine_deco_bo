@@ -1,0 +1,2693 @@
+openapi: 3.0.1
+info:
+  title: Laine Déco API
+  version: 1.0.0
+  description: |
+    Documentation complète de l'API Laine Déco - Plateforme de vente de laine et accessoires
+
+    ## 🔐 Authentification
+    Utilisez un token JWT Bearer dans l'en-tête `Authorization: Bearer <token>`
+
+    ## 📋 Sections de l'API
+    - **Public** : Routes accessibles sans authentification
+    - **Client** : Routes pour les clients authentifiés
+    - **Admin** : Routes pour les administrateurs
+    - **Finance** : Routes pour l'équipe finance
+
+  contact:
+    name: Support Laine Déco
+    email: support@laine-deco.cm
+    url: https://laine-deco.cm
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:8080
+    description: Serveur local
+  - url: https://api.laine-deco.cm
+    description: Serveur de production
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Entrez le token JWT
+
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          type: object
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+
+    ProductResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+        category:
+          type: string
+        brand:
+          type: string
+        stock:
+          type: integer
+        rating:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+
+    OrderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        orderNumber:
+          type: string
+        status:
+          type: string
+        totalAmount:
+          type: number
+        items:
+          type: array
+          items:
+            type: object
+        createdAt:
+          type: string
+          format: date-time
+
+    CategoryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        productCount:
+          type: integer
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+
+    Page:
+      type: object
+      properties:
+        content:
+          type: array
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ========== AUTHENTICATION ROUTES ==========
+  /api/auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: Inscription
+      description: Créer un nouveau compte utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Données invalides
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Connexion
+      description: Authentifier un utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Identifiants invalides
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Déconnexion
+      description: Déconnecter l'utilisateur actuel
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Déconnexion réussie
+
+  /api/auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+      summary: Demander réinitialisation de mot de passe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Email de réinitialisation envoyé
+
+  /api/auth/reset-password:
+    post:
+      tags:
+        - Authentication
+      summary: Réinitialiser le mot de passe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: Mot de passe réinitialisé avec succès
+
+  /api/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Obtenir profil utilisateur
+      description: Récupérer les informations de l'utilisateur connecté
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profil récupéré
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  # ========== PUBLIC PRODUCT ROUTES ==========
+  /api/public/products:
+    get:
+      tags:
+        - Public - Products
+      summary: Lister les produits
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+        - name: brand
+          in: query
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: minRating
+          in: query
+          schema:
+            type: number
+        - name: inStockOnly
+          in: query
+          schema:
+            type: boolean
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [NEWEST, PRICE_ASC, PRICE_DESC, RATING, POPULARITY]
+      responses:
+        '200':
+          description: Liste des produits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+
+  /api/public/products/{id}:
+    get:
+      tags:
+        - Public - Products
+      summary: Détails du produit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails du produit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Produit non trouvé
+
+  /api/public/products/{id}/details:
+    get:
+      tags:
+        - Public - Products
+      summary: Détails complets du produit avec produits similaires
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails complets avec similaires
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/public/products/by-category/{categoryId}:
+    get:
+      tags:
+        - Public - Products
+      summary: Produits par catégorie
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Produits de la catégorie
+
+  /api/public/products/by-brand/{brand}:
+    get:
+      tags:
+        - Public - Products
+      summary: Produits par marque
+      parameters:
+        - name: brand
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Produits de la marque
+
+  /api/public/products/search/keyword:
+    get:
+      tags:
+        - Public - Products
+      summary: Recherche par mot-clé
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Résultats de recherche
+
+  /api/public/products/search/popular:
+    get:
+      tags:
+        - Public - Products
+      summary: Produits populaires
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Produits populaires
+
+  /api/public/products/search/top-rated:
+    get:
+      tags:
+        - Public - Products
+      summary: Produits les mieux notés
+      parameters:
+        - name: minRating
+          in: query
+          schema:
+            type: number
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Produits les mieux notés
+
+  /api/public/products/search/newest:
+    get:
+      tags:
+        - Public - Products
+      summary: Nouveaux produits
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Nouveaux produits
+
+  # ========== PUBLIC CATEGORIES ROUTES ==========
+  /api/public/categories:
+    get:
+      tags:
+        - Public - Categories
+      summary: Lister les catégories
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Liste des catégories
+
+  /api/public/categories/{id}:
+    get:
+      tags:
+        - Public - Categories
+      summary: Détails d'une catégorie
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Catégorie
+
+  # ========== PUBLIC SIDEBAR ROUTES ==========
+  /api/public/sidebar/filters:
+    get:
+      tags:
+        - Public - Sidebar
+      summary: Filtres disponibles pour la recherche
+      responses:
+        '200':
+          description: Filtres disponibles
+
+  /api/public/sidebar/categories:
+    get:
+      tags:
+        - Public - Sidebar
+      summary: Catégories avec compte de produits
+      responses:
+        '200':
+          description: Liste des catégories
+
+  /api/public/sidebar/brands:
+    get:
+      tags:
+        - Public - Sidebar
+      summary: Marques disponibles
+      responses:
+        '200':
+          description: Liste des marques
+
+  /api/public/sidebar/stats:
+    get:
+      tags:
+        - Public - Sidebar
+      summary: Statistiques globales
+      responses:
+        '200':
+          description: Statistiques
+
+  # ========== PUBLIC PROMOTIONS ROUTES ==========
+  /api/public/promotions:
+    get:
+      tags:
+        - Public - Promotions
+      summary: Lister les promotions actives
+      responses:
+        '200':
+          description: Liste des promotions
+
+  /api/public/promotions/flash-sales:
+    get:
+      tags:
+        - Public - Promotions
+      summary: Soldes flash actifs
+      responses:
+        '200':
+          description: Soldes flash
+
+  /api/public/promotions/category/{categoryId}:
+    get:
+      tags:
+        - Public - Promotions
+      summary: Promotions par catégorie
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Promotions de la catégorie
+
+  /api/public/promotions/brand/{brand}:
+    get:
+      tags:
+        - Public - Promotions
+      summary: Promotions par marque
+      parameters:
+        - name: brand
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Promotions de la marque
+
+  /api/public/promotions/product/{productId}:
+    get:
+      tags:
+        - Public - Promotions
+      summary: Promotions pour un produit
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Promotions du produit
+
+  # ========== PUBLIC PRODUCT PACKS ROUTES ==========
+  /api/public/product-packs:
+    get:
+      tags:
+        - Public - Product Packs
+      summary: Lister les packs
+      responses:
+        '200':
+          description: Liste des packs
+
+  /api/public/product-packs/{packId}:
+    get:
+      tags:
+        - Public - Product Packs
+      summary: Détails d'un pack
+      parameters:
+        - name: packId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails du pack
+
+  /api/public/product-packs/search:
+    get:
+      tags:
+        - Public - Product Packs
+      summary: Rechercher un pack
+      parameters:
+        - name: search
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Résultats de recherche
+
+  /api/public/product-packs/promotions:
+    get:
+      tags:
+        - Public - Product Packs
+      summary: Packs en promotion
+      responses:
+        '200':
+          description: Packs en promotion
+
+  /api/public/product-packs/product/{productId}:
+    get:
+      tags:
+        - Public - Product Packs
+      summary: Packs contenant un produit
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Packs du produit
+
+  # ========== PUBLIC ORDER ROUTES ==========
+  /api/public/orders:
+    post:
+      tags:
+        - Public - Orders
+      summary: Créer une commande (invité)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Commande créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+  /api/public/order-tracking/by-number/{orderNumber}:
+    get:
+      tags:
+        - Public - Order Tracking
+      summary: Suivi commande par numéro
+      parameters:
+        - name: orderNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Suivi de la commande
+
+  /api/public/order-tracking/by-id/{orderId}:
+    get:
+      tags:
+        - Public - Order Tracking
+      summary: Suivi commande par ID
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Suivi de la commande
+
+  # ========== PUBLIC NEWSLETTER ROUTES ==========
+  /api/public/newsletter/subscribe:
+    post:
+      tags:
+        - Public - Newsletter
+      summary: S'abonner à la newsletter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '201':
+          description: Abonnement créé
+
+  /api/public/newsletter/unsubscribe/{email}:
+    post:
+      tags:
+        - Public - Newsletter
+      summary: Se désabonner
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Désabonnement réussi
+
+  /api/public/newsletter/resubscribe/{email}:
+    post:
+      tags:
+        - Public - Newsletter
+      summary: Se réabonner
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Réabonnement réussi
+
+  /api/public/newsletter/check/{email}:
+    get:
+      tags:
+        - Public - Newsletter
+      summary: Vérifier statut d'abonnement
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statut d'abonnement
+
+  # ========== PUBLIC MAINTENANCE GUIDES ROUTES ==========
+  /api/public/maintenance-guides:
+    get:
+      tags:
+        - Public - Maintenance Guides
+      summary: Lister les guides d'entretien
+      responses:
+        '200':
+          description: Liste des guides
+
+  /api/public/maintenance-guides/{guideId}:
+    get:
+      tags:
+        - Public - Maintenance Guides
+      summary: Détails d'un guide d'entretien
+      parameters:
+        - name: guideId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails du guide
+
+  /api/public/maintenance-guides/category/{categoryId}:
+    get:
+      tags:
+        - Public - Maintenance Guides
+      summary: Guides par catégorie
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Guides de la catégorie
+
+  /api/public/maintenance-guides/brand/{brand}:
+    get:
+      tags:
+        - Public - Maintenance Guides
+      summary: Guides par marque
+      parameters:
+        - name: brand
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Guides de la marque
+
+  /api/public/maintenance-guides/product/{productId}:
+    get:
+      tags:
+        - Public - Maintenance Guides
+      summary: Guides pour un produit
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Guides du produit
+
+  /api/public/maintenance-guides/search:
+    get:
+      tags:
+        - Public - Maintenance Guides
+      summary: Rechercher des guides
+      parameters:
+        - name: search
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Résultats de recherche
+
+  # ========== PUBLIC LEGAL PAGES ROUTES ==========
+  /api/public/legal:
+    get:
+      tags:
+        - Public - Legal
+      summary: Lister les pages légales
+      responses:
+        '200':
+          description: Liste des pages
+
+  /api/public/legal/{type}:
+    get:
+      tags:
+        - Public - Legal
+      summary: Page légale par type
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Page légale
+
+  /api/public/legal/terms-of-service:
+    get:
+      tags:
+        - Public - Legal
+      summary: Conditions d'utilisation
+      responses:
+        '200':
+          description: CGU
+
+  /api/public/legal/privacy-policy:
+    get:
+      tags:
+        - Public - Legal
+      summary: Politique de confidentialité
+      responses:
+        '200':
+          description: Politique de confidentialité
+
+  /api/public/legal/legal-notice:
+    get:
+      tags:
+        - Public - Legal
+      summary: Mentions légales
+      responses:
+        '200':
+          description: Mentions légales
+
+  /api/public/legal/about-us:
+    get:
+      tags:
+        - Public - Legal
+      summary: À propos de nous
+      responses:
+        '200':
+          description: À propos de nous
+
+  /api/public/legal/site-version:
+    get:
+      tags:
+        - Public - Legal
+      summary: Version du site
+      responses:
+        '200':
+          description: Version du site
+
+  # ========== PUBLIC FAQ ROUTES ==========
+  /api/public/faqs:
+    get:
+      tags:
+        - Public - FAQ
+      summary: Lister les FAQs
+      responses:
+        '200':
+          description: Liste des FAQs
+
+  /api/public/faqs/{faqId}:
+    get:
+      tags:
+        - Public - FAQ
+      summary: Détails d'une FAQ
+      parameters:
+        - name: faqId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails de la FAQ
+
+  # ========== PUBLIC BLOG ROUTES ==========
+  /api/public/blog/posts:
+    get:
+      tags:
+        - Public - Blog
+      summary: Lister les articles
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Liste des articles
+
+  /api/public/blog/posts/{id}:
+    get:
+      tags:
+        - Public - Blog
+      summary: Détails d'un article
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Article
+
+  /api/public/blog/posts/slug/{slug}:
+    get:
+      tags:
+        - Public - Blog
+      summary: Article par slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Article
+
+  /api/public/blog/posts/{id}/like:
+    post:
+      tags:
+        - Public - Blog
+      summary: Aimer un article
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Article aimé
+
+  # ========== TRANSLATIONS ROUTES ==========
+  /api/public/translations/current-language:
+    get:
+      tags:
+        - Public - Translations
+      summary: Langue actuelle
+      responses:
+        '200':
+          description: Langue
+
+  /api/public/translations/supported-languages:
+    get:
+      tags:
+        - Public - Translations
+      summary: Langues supportées
+      responses:
+        '200':
+          description: Langues
+
+  /api/public/translations/product-labels:
+    get:
+      tags:
+        - Public - Translations
+      summary: Libellés des produits
+      responses:
+        '200':
+          description: Libellés
+
+  /api/public/translations/category-labels:
+    get:
+      tags:
+        - Public - Translations
+      summary: Libellés des catégories
+      responses:
+        '200':
+          description: Libellés
+
+  /api/public/translations/order-labels:
+    get:
+      tags:
+        - Public - Translations
+      summary: Libellés des commandes
+      responses:
+        '200':
+          description: Libellés
+
+  # ========== USER PREFERENCES ROUTES ==========
+  /api/user/preferences/language:
+    get:
+      tags:
+        - User Preferences
+      summary: Langue préférée
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Langue préférée
+
+    post:
+      tags:
+        - User Preferences
+      summary: Mettre à jour la langue préférée
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: lang
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [en, fr]
+      responses:
+        '200':
+          description: Langue mise à jour
+
+  # ========== CLIENT PROFILE ROUTES ==========
+  /api/client/profile/me:
+    get:
+      tags:
+        - Client - Profile
+      summary: Profil utilisateur
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profil utilisateur
+
+    put:
+      tags:
+        - Client - Profile
+      summary: Mettre à jour profil utilisateur
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Profil mis à jour
+
+  /api/client/profile/client:
+    get:
+      tags:
+        - Client - Profile
+      summary: Profil client
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profil client
+
+    put:
+      tags:
+        - Client - Profile
+      summary: Mettre à jour profil client
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Profil client mis à jour
+
+  # ========== CLIENT ORDERS ROUTES ==========
+  /api/client/orders:
+    post:
+      tags:
+        - Client - Orders
+      summary: Créer une commande
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderResponse'
+      responses:
+        '201':
+          description: Commande créée
+
+    get:
+      tags:
+        - Client - Orders
+      summary: Lister les commandes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Liste des commandes
+
+  /api/client/orders/{orderId}:
+    get:
+      tags:
+        - Client - Orders
+      summary: Détails d'une commande
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails de la commande
+
+  /api/client/orders/{orderId}/cancel:
+    post:
+      tags:
+        - Client - Orders
+      summary: Annuler une commande
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Commande annulée
+
+  # ========== CLIENT WISHLIST ROUTES ==========
+  /api/client/wishlist:
+    get:
+      tags:
+        - Client - Wishlist
+      summary: Voir la liste de souhaits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Liste de souhaits
+
+    delete:
+      tags:
+        - Client - Wishlist
+      summary: Vider la liste de souhaits
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste vidée
+
+  /api/client/wishlist/{productId}:
+    post:
+      tags:
+        - Client - Wishlist
+      summary: Ajouter à la liste de souhaits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Produit ajouté
+
+    delete:
+      tags:
+        - Client - Wishlist
+      summary: Retirer de la liste de souhaits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Produit retiré
+
+  # ========== CLIENT REVIEWS ROUTES ==========
+  /api/client/reviews:
+    post:
+      tags:
+        - Client - Reviews
+      summary: Créer un avis
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Avis créé
+
+  /api/client/reviews/me:
+    get:
+      tags:
+        - Client - Reviews
+      summary: Mes avis
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Mes avis
+
+  /api/client/reviews/{reviewId}:
+    delete:
+      tags:
+        - Client - Reviews
+      summary: Supprimer un avis
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Avis supprimé
+
+  # ========== CLIENT KNITTING PROJECTS ROUTES ==========
+  /api/client/knitting-projects:
+    post:
+      tags:
+        - Client - Knitting Projects
+      summary: Créer un projet
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Projet créé
+
+    get:
+      tags:
+        - Client - Knitting Projects
+      summary: Lister mes projets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Mes projets
+
+  /api/client/knitting-projects/{id}:
+    get:
+      tags:
+        - Client - Knitting Projects
+      summary: Détails du projet
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Projet
+
+    put:
+      tags:
+        - Client - Knitting Projects
+      summary: Mettre à jour le projet
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Projet mis à jour
+
+  /api/client/knitting-projects/{id}/progress:
+    put:
+      tags:
+        - Client - Knitting Projects
+      summary: Mettre à jour la progression
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: progress
+          in: query
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Progression mise à jour
+
+  /api/client/knitting-projects/{id}/complete:
+    post:
+      tags:
+        - Client - Knitting Projects
+      summary: Marquer comme complété
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Projet complété
+
+  # ========== CLIENT LOYALTY ROUTES ==========
+  /api/client/loyalty/profile:
+    get:
+      tags:
+        - Client - Loyalty
+      summary: Profil de fidélité
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profil de fidélité
+
+  /api/client/loyalty/badges:
+    get:
+      tags:
+        - Client - Loyalty
+      summary: Mes badges
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Mes badges
+
+  /api/client/loyalty/redeem:
+    post:
+      tags:
+        - Client - Loyalty
+      summary: Utiliser une récompense
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Récompense utilisée
+
+  # ========== CLIENT NOTIFICATIONS ROUTES ==========
+  /api/client/notifications:
+    get:
+      tags:
+        - Client - Notifications
+      summary: Lister les notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Notifications
+
+  /api/client/notifications/unread:
+    get:
+      tags:
+        - Client - Notifications
+      summary: Notifications non lues
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Notifications non lues
+
+  /api/client/notifications/unread-count:
+    get:
+      tags:
+        - Client - Notifications
+      summary: Nombre de notifications non lues
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Nombre
+
+  /api/client/notifications/{id}:
+    get:
+      tags:
+        - Client - Notifications
+      summary: Détails notification
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification
+
+  /api/client/notifications/{id}/mark-as-read:
+    post:
+      tags:
+        - Client - Notifications
+      summary: Marquer comme lu
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Marqué comme lu
+
+  /api/client/notifications/mark-all-as-read:
+    post:
+      tags:
+        - Client - Notifications
+      summary: Tout marquer comme lu
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tous marqués
+
+  # ========== ADMIN PRODUCTS ROUTES ==========
+  /api/admin/products:
+    post:
+      tags:
+        - Admin - Products
+      summary: Créer un produit
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductResponse'
+      responses:
+        '201':
+          description: Produit créé
+
+    get:
+      tags:
+        - Admin - Products
+      summary: Lister les produits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Produits
+
+  /api/admin/products/{id}:
+    get:
+      tags:
+        - Admin - Products
+      summary: Détails du produit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Produit
+
+    put:
+      tags:
+        - Admin - Products
+      summary: Mettre à jour le produit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductResponse'
+      responses:
+        '200':
+          description: Produit mis à jour
+
+  /api/admin/products/search:
+    get:
+      tags:
+        - Admin - Products
+      summary: Rechercher des produits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Résultats
+
+  /api/admin/products/low-stock:
+    get:
+      tags:
+        - Admin - Products
+      summary: Produits en stock faible
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Produits en stock faible
+
+  # ========== ADMIN CATEGORIES ROUTES ==========
+  /api/admin/categories:
+    post:
+      tags:
+        - Admin - Categories
+      summary: Créer une catégorie
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryResponse'
+      responses:
+        '201':
+          description: Catégorie créée
+
+    get:
+      tags:
+        - Admin - Categories
+      summary: Lister les catégories
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Catégories
+
+  /api/admin/categories/{id}:
+    get:
+      tags:
+        - Admin - Categories
+      summary: Détails catégorie
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Catégorie
+
+    put:
+      tags:
+        - Admin - Categories
+      summary: Mettre à jour catégorie
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryResponse'
+      responses:
+        '200':
+          description: Catégorie mise à jour
+
+    delete:
+      tags:
+        - Admin - Categories
+      summary: Supprimer catégorie
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Catégorie supprimée
+
+  # ========== ADMIN PROMOTIONS ROUTES ==========
+  /api/admin/promotions:
+    post:
+      tags:
+        - Admin - Promotions
+      summary: Créer une promotion
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Promotion créée
+
+    get:
+      tags:
+        - Admin - Promotions
+      summary: Lister les promotions
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Promotions
+
+  /api/admin/promotions/flash-sales:
+    get:
+      tags:
+        - Admin - Promotions
+      summary: Soldes flash
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Soldes flash
+
+  /api/admin/promotions/{id}:
+    put:
+      tags:
+        - Admin - Promotions
+      summary: Mettre à jour la promotion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Promotion mise à jour
+
+    delete:
+      tags:
+        - Admin - Promotions
+      summary: Supprimer la promotion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Promotion supprimée
+
+  # ========== ADMIN PRODUCT PACKS ROUTES ==========
+  /api/admin/product-packs:
+    post:
+      tags:
+        - Admin - Product Packs
+      summary: Créer un pack
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Pack créé
+
+    get:
+      tags:
+        - Admin - Product Packs
+      summary: Lister les packs
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Packs
+
+  /api/admin/product-packs/{packId}:
+    get:
+      tags:
+        - Admin - Product Packs
+      summary: Détails du pack
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: packId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pack
+
+    put:
+      tags:
+        - Admin - Product Packs
+      summary: Mettre à jour le pack
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: packId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Pack mis à jour
+
+    delete:
+      tags:
+        - Admin - Product Packs
+      summary: Supprimer le pack
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: packId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pack supprimé
+
+  /api/admin/product-packs/{packId}/deactivate:
+    put:
+      tags:
+        - Admin - Product Packs
+      summary: Désactiver le pack
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: packId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pack désactivé
+
+  /api/admin/product-packs/{packId}/activate:
+    put:
+      tags:
+        - Admin - Product Packs
+      summary: Activer le pack
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: packId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pack activé
+
+  /api/admin/product-packs/{packId}/promotion:
+    post:
+      tags:
+        - Admin - Product Packs
+      summary: Ajouter promotion au pack
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: packId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: discountPercentage
+          in: query
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Promotion ajoutée
+
+    delete:
+      tags:
+        - Admin - Product Packs
+      summary: Retirer promotion du pack
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: packId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Promotion retirée
+
+  # ========== ADMIN NEWS ROUTES ==========
+  /api/admin/newsletter:
+    get:
+      tags:
+        - Admin - Newsletter
+      summary: Lister les abonnés
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Abonnés
+
+  /api/admin/newsletter/active:
+    get:
+      tags:
+        - Admin - Newsletter
+      summary: Abonnés actifs
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Abonnés actifs
+
+  /api/admin/newsletter/search:
+    get:
+      tags:
+        - Admin - Newsletter
+      summary: Rechercher abonnés
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Résultats
+
+  /api/admin/newsletter/count:
+    get:
+      tags:
+        - Admin - Newsletter
+      summary: Nombre d'abonnés
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Nombre
+
+  /api/admin/newsletter/{subscriptionId}:
+    delete:
+      tags:
+        - Admin - Newsletter
+      summary: Supprimer abonné
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Abonné supprimé
+
+  # ========== ADMIN DASHBOARD ROUTES ==========
+  /api/admin/dashboard/stats:
+    get:
+      tags:
+        - Admin - Dashboard
+      summary: Statistiques du tableau de bord
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Statistiques
+
+  /api/admin/dashboard/sales-analytics:
+    get:
+      tags:
+        - Admin - Dashboard
+      summary: Analytique des ventes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Analytique
+
+  /api/admin/dashboard/category-revenue:
+    get:
+      tags:
+        - Admin - Dashboard
+      summary: Revenus par catégorie
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Revenus
+
+  /api/admin/dashboard/top-products:
+    get:
+      tags:
+        - Admin - Dashboard
+      summary: Top produits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Top produits
+
+  /api/admin/dashboard/inventory-health:
+    get:
+      tags:
+        - Admin - Dashboard
+      summary: Santé de l'inventaire
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Santé de l'inventaire
+
+  /api/admin/dashboard/today/orders:
+    get:
+      tags:
+        - Admin - Dashboard
+      summary: Commandes du jour
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Nombre
+
+  /api/admin/dashboard/today/revenue:
+    get:
+      tags:
+        - Admin - Dashboard
+      summary: Revenu du jour
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Revenu
+
+  # ========== ADMIN ORDERS ROUTES ==========
+  /api/admin/orders/{orderId}:
+    get:
+      tags:
+        - Admin - Orders
+      summary: Détails commande
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Commande
+
+  /api/admin/orders/{orderId}/status:
+    put:
+      tags:
+        - Admin - Orders
+      summary: Mettre à jour statut commande
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statut mis à jour
+
+  /api/admin/orders/{orderId}/cancel:
+    post:
+      tags:
+        - Admin - Orders
+      summary: Annuler une commande
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Commande annulée
+
+  # ========== ADMIN AUDIT LOGS ROUTES ==========
+  /api/admin/audit-logs/user/{userId}:
+    get:
+      tags:
+        - Admin - Audit Logs
+      summary: Logs d'audit par utilisateur
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Logs
+
+  /api/admin/audit-logs/action/{action}:
+    get:
+      tags:
+        - Admin - Audit Logs
+      summary: Logs d'audit par action
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: action
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Logs
+
+  /api/admin/audit-logs/search:
+    get:
+      tags:
+        - Admin - Audit Logs
+      summary: Rechercher les logs d'audit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: string
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: entityType
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: startTime
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endTime
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Résultats
+
+  # ========== FINANCE ROUTES ==========
+  /api/finance/products:
+    post:
+      tags:
+        - Finance - Products
+      summary: Créer un produit
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductResponse'
+      responses:
+        '201':
+          description: Produit créé
+
+    get:
+      tags:
+        - Finance - Products
+      summary: Lister les produits
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Produits
+
+  /api/finance/products/{id}:
+    get:
+      tags:
+        - Finance - Products
+      summary: Détails du produit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Produit
+
+    put:
+      tags:
+        - Finance - Products
+      summary: Mettre à jour le produit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductResponse'
+      responses:
+        '200':
+          description: Produit mis à jour
+
+  /api/finance/products/search:
+    get:
+      tags:
+        - Finance - Products
+      summary: Rechercher des produits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Résultats
+
+  /api/finance/products/low-stock:
+    get:
+      tags:
+        - Finance - Products
+      summary: Produits en stock faible
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Produits
+
+  /api/finance/expenses:
+    post:
+      tags:
+        - Finance - Expenses
+      summary: Créer une dépense
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Dépense créée
+
+    get:
+      tags:
+        - Finance - Expenses
+      summary: Lister les dépenses
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dépenses
+
+  /api/finance/expenses/by-status:
+    get:
+      tags:
+        - Finance - Expenses
+      summary: Dépenses par statut
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dépenses
+
+  /api/finance/expenses/by-category:
+    get:
+      tags:
+        - Finance - Expenses
+      summary: Dépenses par catégorie
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dépenses
+
+  /api/finance/expenses/{id}/status:
+    put:
+      tags:
+        - Finance - Expenses
+      summary: Mettre à jour le statut
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statut mis à jour
+
+  /api/finance/expenses/statistics/total-by-status:
+    get:
+      tags:
+        - Finance - Expenses
+      summary: Total des dépenses par statut
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Total
+
+  /api/finance/expenses/statistics/total-by-category:
+    get:
+      tags:
+        - Finance - Expenses
+      summary: Total des dépenses par catégorie
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Total
+
+tags:
+  - name: Authentication
+    description: Endpoints d'authentification
+  - name: Public - Products
+    description: Gestion des produits (publique)
+  - name: Public - Categories
+    description: Gestion des catégories (publique)
+  - name: Public - Sidebar
+    description: Filtres et statistiques sidebar
+  - name: Public - Promotions
+    description: Gestion des promotions (publique)
+  - name: Public - Product Packs
+    description: Gestion des packs produits (publique)
+  - name: Public - Orders
+    description: Commandes (publique)
+  - name: Public - Order Tracking
+    description: Suivi des commandes (publique)
+  - name: Public - Newsletter
+    description: Gestion newsletter (publique)
+  - name: Public - Maintenance Guides
+    description: Guides d'entretien (publique)
+  - name: Public - Legal
+    description: Pages légales (publique)
+  - name: Public - FAQ
+    description: FAQ (publique)
+  - name: Public - Blog
+    description: Blog (publique)
+  - name: Public - Translations
+    description: Traductions
+  - name: User Preferences
+    description: Préférences utilisateur
+  - name: Client - Profile
+    description: Profil client
+  - name: Client - Orders
+    description: Commandes client
+  - name: Client - Wishlist
+    description: Liste de souhaits
+  - name: Client - Reviews
+    description: Avis clients
+  - name: Client - Knitting Projects
+    description: Projets de tricot
+  - name: Client - Loyalty
+    description: Programme de fidélité
+  - name: Client - Notifications
+    description: Notifications
+  - name: Admin - Products
+    description: Gestion des produits (admin)
+  - name: Admin - Categories
+    description: Gestion des catégories (admin)
+  - name: Admin - Promotions
+    description: Gestion des promotions (admin)
+  - name: Admin - Product Packs
+    description: Gestion des packs produits (admin)
+  - name: Admin - Newsletter
+    description: Gestion newsletter (admin)
+  - name: Admin - Dashboard
+    description: Tableau de bord admin
+  - name: Admin - Orders
+    description: Gestion des commandes (admin)
+  - name: Admin - Audit Logs
+    description: Logs d'audit
+  - name: Finance - Products
+    description: Gestion des produits (finance)
+  - name: Finance - Expenses
+    description: Gestion des dépenses

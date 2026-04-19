@@ -3,8 +3,6 @@ package cm.dolers.laine_deco.application.usecase;
 import cm.dolers.laine_deco.application.dto.CategoryWithCountResponse;
 import cm.dolers.laine_deco.application.dto.BrandWithCountResponse;
 import cm.dolers.laine_deco.application.dto.SidebarFiltersResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 

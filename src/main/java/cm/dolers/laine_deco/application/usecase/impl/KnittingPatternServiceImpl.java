@@ -5,10 +5,10 @@ import cm.dolers.laine_deco.application.mapper.KnittingPatternMapper;
 import cm.dolers.laine_deco.application.usecase.KnittingPatternService;
 import cm.dolers.laine_deco.domain.exception.ErrorCode;
 import cm.dolers.laine_deco.domain.exception.ValidationException;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.KnittingPatternEntity;
-import cm.dolers.laine_deco.infrastructure.persistence.repository.KnittingPatternJpaRepository;
+import cm.dolers.laine_deco.infrastructure.persistence.entity.PatternEntity;
+import cm.dolers.laine_deco.infrastructure.persistence.repository.PatternJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,9 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class KnittingPatternServiceImpl implements KnittingPatternService {
-    private final KnittingPatternJpaRepository patternRepository;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KnittingPatternServiceImpl.class);
+    private final PatternJpaRepository patternRepository;
     private final KnittingPatternMapper patternMapper;
 
     @Override
@@ -26,14 +27,14 @@ public class KnittingPatternServiceImpl implements KnittingPatternService {
     public KnittingPatternResponse createPattern(CreateKnittingPatternRequest request) {
         log.info("Creating knitting pattern: {}", request.name());
         try {
-            var pattern = new KnittingPatternEntity();
+            var pattern = new PatternEntity();
             pattern.setName(request.name());
             pattern.setAuthor(request.author());
             pattern.setDescription(request.description());
-            pattern.setSkillLevel(request.skillLevel());
+            pattern.setSkillLevel(cm.dolers.laine_deco.domain.model.SkillLevel.valueOf(request.skillLevel()));
             pattern.setEstimatedHours(request.estimatedHours());
             pattern.setYarnType(request.yarnType());
-            pattern.setNeedleSize(request.needleSize());
+            pattern.setNeedleSize(String.valueOf(request.needleSize()));
             pattern.setUrl(request.url());
             pattern.setDownloadCount(0);
 
@@ -50,7 +51,7 @@ public class KnittingPatternServiceImpl implements KnittingPatternService {
     @Transactional(readOnly = true)
     public KnittingPatternResponse getPatternById(Long patternId) {
         var pattern = patternRepository.findById(patternId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.PATTERN_NOT_FOUND, "ID: " + patternId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.PATTERN_NOT_FOUND, "ID: " + patternId));
         return patternMapper.toResponse(pattern);
     }
 
@@ -64,28 +65,29 @@ public class KnittingPatternServiceImpl implements KnittingPatternService {
     @Transactional(readOnly = true)
     public Page<KnittingPatternResponse> searchPatterns(String keyword, Pageable pageable) {
         return patternRepository.findByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(keyword, keyword, pageable)
-            .map(patternMapper::toResponse);
+                .map(patternMapper::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<KnittingPatternResponse> getPatternsBySkillLevel(String level, Pageable pageable) {
-        return patternRepository.findBySkillLevel(level, pageable).map(patternMapper::toResponse);
+        return patternRepository.findBySkillLevel(cm.dolers.laine_deco.domain.model.SkillLevel.valueOf(level), pageable)
+                .map(patternMapper::toResponse);
     }
 
     @Override
     @Transactional
     public KnittingPatternResponse updatePattern(Long patternId, CreateKnittingPatternRequest request) {
         var pattern = patternRepository.findById(patternId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.PATTERN_NOT_FOUND, "ID: " + patternId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.PATTERN_NOT_FOUND, "ID: " + patternId));
 
         pattern.setName(request.name());
         pattern.setAuthor(request.author());
         pattern.setDescription(request.description());
-        pattern.setSkillLevel(request.skillLevel());
+        pattern.setSkillLevel(cm.dolers.laine_deco.domain.model.SkillLevel.valueOf(request.skillLevel()));
         pattern.setEstimatedHours(request.estimatedHours());
         pattern.setYarnType(request.yarnType());
-        pattern.setNeedleSize(request.needleSize());
+        pattern.setNeedleSize(String.valueOf(request.needleSize()));
         pattern.setUrl(request.url());
 
         var updated = patternRepository.save(pattern);
@@ -107,8 +109,14 @@ public class KnittingPatternServiceImpl implements KnittingPatternService {
     @Transactional
     public void incrementDownloadCount(Long patternId) {
         var pattern = patternRepository.findById(patternId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.PATTERN_NOT_FOUND, "ID: " + patternId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.PATTERN_NOT_FOUND, "ID: " + patternId));
         pattern.setDownloadCount(pattern.getDownloadCount() + 1);
         patternRepository.save(pattern);
+    }
+
+    @Override
+    public org.springframework.data.domain.Page<cm.dolers.laine_deco.application.dto.KnittingPatternResponse> getPublishedPatterns(
+            org.springframework.data.domain.Pageable pageable) {
+        return org.springframework.data.domain.Page.empty();
     }
 }

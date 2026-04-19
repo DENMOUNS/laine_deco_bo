@@ -2,6 +2,7 @@ package cm.dolers.laine_deco.infrastructure.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Lob;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.ForeignKey;
@@ -86,10 +87,10 @@ public class OrderEntity {
     @Column(name = "delivery_district")
     private String deliveryDistrict;
 
-    @Column(name = "delivery_latitude", precision = 10, scale = 8)
+    @Column(name = "delivery_latitude")
     private Double deliveryLatitude;
 
-    @Column(name = "delivery_longitude", precision = 11, scale = 8)
+    @Column(name = "delivery_longitude")
     private Double deliveryLongitude;
 
     // === COUPON AND DISCOUNT INFO ===
@@ -361,4 +362,16 @@ public class OrderEntity {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    private java.math.BigDecimal tax;
+    public java.math.BigDecimal getTax() { return tax; }
+    public void setTax(java.math.BigDecimal tax) { this.tax = tax; }
+
+    public void setOrderType(String orderType) { this.type = orderType; }
+
+    public UserEntity getClient() { return user; } public void setClient(UserEntity client) { this.user = client; }
 }
+
+
+
+

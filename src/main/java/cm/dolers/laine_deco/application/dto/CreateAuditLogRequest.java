@@ -16,3 +16,4 @@ public record CreateAuditLogRequest(
     String oldData,
     String newData
 ) {}
+

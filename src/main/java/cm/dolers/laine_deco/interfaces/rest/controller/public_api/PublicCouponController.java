@@ -1,23 +1,20 @@
 package cm.dolers.laine_deco.interfaces.rest.controller.public_api;
 
-import cm.dolers.laine_deco.application.dto.CouponResponse;
+import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.CouponService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Public Controller pour Coupons/Codes Promo
- * Responsabilité: Exposer les coupons actifs au public et valider les codes
- */
 @RestController
 @RequestMapping("/api/public/coupons")
 @RequiredArgsConstructor
-@Slf4j
+
 public class PublicCouponController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PublicCouponController.class);
     private final CouponService couponService;
 
     @GetMapping("/active")

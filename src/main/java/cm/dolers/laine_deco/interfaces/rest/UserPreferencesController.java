@@ -4,7 +4,7 @@ import cm.dolers.laine_deco.infrastructure.i18n.MessageService;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.UserJpaRepository;
 import cm.dolers.laine_deco.domain.model.ThemePreference;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,9 +25,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/user/preferences")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasRole('CLIENT') or hasRole('ADMIN')")
 public class UserPreferencesController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPreferencesController.class);
     private final UserJpaRepository userRepository;
     private final MessageService messageService;
 
@@ -38,7 +39,7 @@ public class UserPreferencesController {
     @GetMapping("/language")
     public ResponseEntity<Map<String, String>> getPreferredLanguage() {
         log.info("GET /api/user/preferences/language");
-        
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -51,13 +52,11 @@ public class UserPreferencesController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        String language = user.get().getPreferredLanguage() != null ? 
-            user.get().getPreferredLanguage() : "fr";
+        String language = user.get().getPreferredLanguage() != null ? user.get().getPreferredLanguage() : "fr";
 
         return ResponseEntity.ok(Map.of(
-            "preferredLanguage", language,
-            "supportedLanguages", "fr,en"
-        ));
+                "preferredLanguage", language,
+                "supportedLanguages", "fr,en"));
     }
 
     /**
@@ -66,16 +65,14 @@ public class UserPreferencesController {
      */
     @PostMapping("/language")
     public ResponseEntity<Map<String, String>> setPreferredLanguage(
-        @RequestParam String lang
-    ) {
+            @RequestParam String lang) {
         log.info("POST /api/user/preferences/language - Setting language to: {}", lang);
 
         // Validation de la langue
         if (!lang.matches("^(fr|en)$")) {
             return ResponseEntity.badRequest().body(Map.of(
-                "error", messageService.getMessage("error.bad.request"),
-                "message", "Language must be 'fr' or 'en'"
-            ));
+                    "error", messageService.getMessage("error.bad.request"),
+                    "message", "Language must be 'fr' or 'en'"));
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -97,10 +94,9 @@ public class UserPreferencesController {
         log.info("User {} language preference updated to: {}", email, lang);
 
         return ResponseEntity.ok(Map.of(
-            "message", messageService.getMessage("success.item.updated"),
-            "preferredLanguage", lang,
-            "currentLanguage", messageService.getCurrentLanguage()
-        ));
+                "message", messageService.getMessage("success.item.updated"),
+                "preferredLanguage", lang,
+                "currentLanguage", messageService.getCurrentLanguage()));
     }
 
     /**
@@ -124,10 +120,10 @@ public class UserPreferencesController {
         }
 
         Map<String, String> preferences = new HashMap<>();
-        preferences.put("preferredLanguage", user.get().getPreferredLanguage() != null ? 
-            user.get().getPreferredLanguage() : "fr");
-        preferences.put("preferredTheme", user.get().getPreferredTheme() != null ? 
-            user.get().getPreferredTheme().getValue() : "light");
+        preferences.put("preferredLanguage",
+                user.get().getPreferredLanguage() != null ? user.get().getPreferredLanguage() : "fr");
+        preferences.put("preferredTheme",
+                user.get().getPreferredTheme() != null ? user.get().getPreferredTheme().getValue() : "light");
         preferences.put("email", user.get().getEmail());
         preferences.put("name", user.get().getName());
 
@@ -141,7 +137,7 @@ public class UserPreferencesController {
     @GetMapping("/theme")
     public ResponseEntity<Map<String, String>> getPreferredTheme() {
         log.info("GET /api/user/preferences/theme");
-        
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -154,13 +150,11 @@ public class UserPreferencesController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        String theme = user.get().getPreferredTheme() != null ? 
-            user.get().getPreferredTheme().getValue() : "light";
+        String theme = user.get().getPreferredTheme() != null ? user.get().getPreferredTheme().getValue() : "light";
 
         return ResponseEntity.ok(Map.of(
-            "preferredTheme", theme,
-            "supportedThemes", "light,dark"
-        ));
+                "preferredTheme", theme,
+                "supportedThemes", "light,dark"));
     }
 
     /**
@@ -169,17 +163,15 @@ public class UserPreferencesController {
      */
     @PostMapping("/theme")
     public ResponseEntity<Map<String, String>> setPreferredTheme(
-        @RequestParam String theme
-    ) {
+            @RequestParam String theme) {
         log.info("POST /api/user/preferences/theme - Setting theme to: {}", theme);
 
         // Validation du thème
         ThemePreference themePreference = ThemePreference.fromString(theme);
         if (themePreference == null) {
             return ResponseEntity.badRequest().body(Map.of(
-                "error", messageService.getMessage("error.bad.request"),
-                "message", "Theme must be 'light' or 'dark'"
-            ));
+                    "error", messageService.getMessage("error.bad.request"),
+                    "message", "Theme must be 'light' or 'dark'"));
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -201,8 +193,7 @@ public class UserPreferencesController {
         log.info("User {} theme preference updated to: {}", email, theme);
 
         return ResponseEntity.ok(Map.of(
-            "message", messageService.getMessage("success.item.updated"),
-            "preferredTheme", themePreference.getValue()
-        ));
+                "message", messageService.getMessage("success.item.updated"),
+                "preferredTheme", themePreference.getValue()));
     }
 }

@@ -18,8 +18,10 @@ public interface ReviewService {
     Page<ReviewResponse> getUserReviews(Long userId, Pageable pageable);
     
     void deleteReview(Long reviewId);
+    void deleteUserReview(Long reviewId, Long userId);
     
     void approveReview(Long reviewId);
     
     void rejectReview(Long reviewId);
 }
+

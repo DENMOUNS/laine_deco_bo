@@ -1,18 +1,15 @@
 package cm.dolers.laine_deco.application.mapper.impl;
 
-import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductPackEntity;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductPackProductEntity;
 import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.mapper.ProductPackMapper;
-import org.springframework.stereotype.Component;
-
-import java.time.format.DateTimeFormatter;
+import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductPackEntity;
+import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductPackProductEntity;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ProductPackMapperImpl implements ProductPackMapper {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_INSTANT;
 
     @Override
     public ProductPackResponse toResponse(ProductPackEntity entity) {

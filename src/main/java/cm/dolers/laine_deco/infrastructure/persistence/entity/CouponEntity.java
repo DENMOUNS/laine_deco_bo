@@ -11,7 +11,6 @@ import jakarta.persistence.Table;
 import cm.dolers.laine_deco.domain.model.CouponType;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "coupons")

@@ -3,6 +3,7 @@ package cm.dolers.laine_deco.infrastructure.persistence.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Lob;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -15,6 +16,7 @@ import cm.dolers.laine_deco.domain.model.ThemePreference;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
+
 import java.util.List;
 import java.util.Set;
 
@@ -72,11 +74,11 @@ public class UserEntity {
     private Instant createdAt = Instant.now();
 
     @Column(length = 5)
-    private String preferredLanguage = "fr";  // fr, en
+    private String preferredLanguage = "fr"; // fr, en
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ThemePreference preferredTheme = ThemePreference.LIGHT;  // LIGHT par défaut
+    private ThemePreference preferredTheme = ThemePreference.LIGHT; // LIGHT par défaut
 
     @OneToMany(mappedBy = "user", orphanRemoval = true)
     private Set<UserRoleEntity> roles = new HashSet<>();

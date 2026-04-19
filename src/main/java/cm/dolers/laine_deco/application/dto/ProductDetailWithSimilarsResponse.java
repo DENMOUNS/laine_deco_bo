@@ -9,3 +9,4 @@ public record ProductDetailWithSimilarsResponse(
     ProductDetailResponse product,
     List<ProductResponse> similarProducts
 ) {}
+

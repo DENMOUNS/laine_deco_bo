@@ -24,3 +24,4 @@ public record AuditLogResponse(
     String newData,
     Instant timestamp
 ) {}
+

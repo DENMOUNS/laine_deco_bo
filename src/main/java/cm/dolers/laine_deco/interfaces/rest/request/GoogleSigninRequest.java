@@ -1,5 +1,4 @@
 package cm.dolers.laine_deco.interfaces.rest.request;
-
 import jakarta.validation.constraints.NotBlank;
 
 public class GoogleSigninRequest {
@@ -24,3 +23,4 @@ public class GoogleSigninRequest {
         this.rememberMe = rememberMe;
     }
 }
+

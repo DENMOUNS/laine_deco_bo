@@ -34,4 +34,12 @@ public class FAQEntity {
 
     @Column(nullable = false)
     private Instant updatedAt = Instant.now();
+
+    public void setQuestion(String question) { this.question = question; }
+    public void setAnswer(String answer) { this.answer = answer; }
+    public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    public void setCreatedAt(java.time.Instant createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(java.time.Instant updatedAt) { this.updatedAt = updatedAt; }
 }
+

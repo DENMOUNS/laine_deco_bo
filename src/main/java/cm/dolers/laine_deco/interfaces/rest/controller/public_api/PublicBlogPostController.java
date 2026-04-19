@@ -1,23 +1,20 @@
 package cm.dolers.laine_deco.interfaces.rest.controller.public_api;
 
-import cm.dolers.laine_deco.application.dto.BlogPostResponse;
+import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.BlogPostService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Public Controller pour Articles de Blog
- * Responsabilité: Exposer les articles publiés, incrémenter vues et likes
- */
 @RestController
 @RequestMapping("/api/public/blog")
 @RequiredArgsConstructor
-@Slf4j
+
 public class PublicBlogPostController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PublicBlogPostController.class);
     private final BlogPostService blogPostService;
 
     @GetMapping("/posts/{id}")

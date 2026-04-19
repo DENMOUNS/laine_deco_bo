@@ -24,19 +24,19 @@ public class LegalPageServiceImpl implements LegalPageService {
     @Override
     public LegalPageResponse createOrUpdatePage(LegalPageType type, CreateLegalPageRequest request) {
         LegalPageEntity page = repository.findByType(type)
-            .orElse(new LegalPageEntity());
-        
+                .orElse(new LegalPageEntity());
+
         page.setType(type);
         page.setTitle(request.getTitle());
         page.setContent(request.getContent());
         page.setSummary(request.getSummary());
         page.setVersion(request.getVersion());
         page.setUpdatedAt(Instant.now());
-        
+
         if (page.getId() == null) {
             page.setCreatedAt(Instant.now());
         }
-        
+
         LegalPageEntity saved = repository.save(page);
         return mapper.toResponse(saved);
     }
@@ -45,7 +45,7 @@ public class LegalPageServiceImpl implements LegalPageService {
     @Transactional(readOnly = true)
     public LegalPageResponse getPageByType(LegalPageType type) {
         LegalPageEntity page = repository.findByType(type)
-            .orElseThrow(() -> new IllegalArgumentException("Legal page not found: " + type));
+                .orElseThrow(() -> new IllegalArgumentException("Legal page not found: " + type));
         return mapper.toResponse(page);
     }
 
@@ -64,12 +64,12 @@ public class LegalPageServiceImpl implements LegalPageService {
     @Override
     public LegalPageResponse publishPage(LegalPageType type) {
         LegalPageEntity page = repository.findByType(type)
-            .orElseThrow(() -> new IllegalArgumentException("Legal page not found: " + type));
-        
+                .orElseThrow(() -> new IllegalArgumentException("Legal page not found: " + type));
+
         page.setIsPublished(true);
         page.setPublishedAt(Instant.now());
         page.setUpdatedAt(Instant.now());
-        
+
         LegalPageEntity updated = repository.save(page);
         return mapper.toResponse(updated);
     }
@@ -77,11 +77,11 @@ public class LegalPageServiceImpl implements LegalPageService {
     @Override
     public LegalPageResponse unpublishPage(LegalPageType type) {
         LegalPageEntity page = repository.findByType(type)
-            .orElseThrow(() -> new IllegalArgumentException("Legal page not found: " + type));
-        
+                .orElseThrow(() -> new IllegalArgumentException("Legal page not found: " + type));
+
         page.setIsPublished(false);
         page.setUpdatedAt(Instant.now());
-        
+
         LegalPageEntity updated = repository.save(page);
         return mapper.toResponse(updated);
     }

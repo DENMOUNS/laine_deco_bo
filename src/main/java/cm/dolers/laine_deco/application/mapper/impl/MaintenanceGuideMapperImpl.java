@@ -1,12 +1,11 @@
 package cm.dolers.laine_deco.application.mapper.impl;
 
-import cm.dolers.laine_deco.infrastructure.persistence.entity.MaintenanceGuideEntity;
 import cm.dolers.laine_deco.application.dto.MaintenanceGuideResponse;
 import cm.dolers.laine_deco.application.mapper.MaintenanceGuideMapper;
-import org.springframework.stereotype.Component;
-
+import cm.dolers.laine_deco.infrastructure.persistence.entity.MaintenanceGuideEntity;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Component
 public class MaintenanceGuideMapperImpl implements MaintenanceGuideMapper {
@@ -17,23 +16,15 @@ public class MaintenanceGuideMapperImpl implements MaintenanceGuideMapper {
         response.setTitle(entity.getTitle());
         response.setContent(entity.getContent());
         response.setInstructions(entity.getInstructions());
-        response.setScope(entity.getScope());
-        response.setImage(entity.getImage());
+
+        response.setCategoryId(entity.getCategory() != null ? entity.getCategory().getId() : null);
+        response.setCategoryName(entity.getCategory() != null ? entity.getCategory().getName() : null);
+        response.setBrand(entity.getBrand());
+        response.setProductId(entity.getProduct() != null ? entity.getProduct().getId() : null);
+        response.setProductName(entity.getProduct() != null ? entity.getProduct().getName() : null);
         response.setIsActive(entity.getIsActive());
-        response.setCreatedAt(entity.getCreatedAt().toString());
-        response.setUpdatedAt(entity.getUpdatedAt().toString());
-        
-        if (entity.getCategory() != null) {
-            response.setCategoryId(entity.getCategory().getId());
-            response.setCategoryName(entity.getCategory().getName());
-        }
-        if (entity.getBrand() != null) {
-            response.setBrand(entity.getBrand());
-        }
-        if (entity.getProduct() != null) {
-            response.setProductId(entity.getProduct().getId());
-            response.setProductName(entity.getProduct().getName());
-        }
+        response.setCreatedAt(entity.getCreatedAt() != null ? entity.getCreatedAt().toString() : null);
+        response.setUpdatedAt(entity.getUpdatedAt() != null ? entity.getUpdatedAt().toString() : null);
         return response;
     }
 
@@ -42,3 +33,4 @@ public class MaintenanceGuideMapperImpl implements MaintenanceGuideMapper {
         return entities.stream().map(this::toResponse).collect(Collectors.toList());
     }
 }
+

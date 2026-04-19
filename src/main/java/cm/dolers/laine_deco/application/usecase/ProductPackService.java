@@ -20,3 +20,4 @@ public interface ProductPackService {
     ProductPackResponse applyPromotionToPack(Long packId, Integer discountPercentage);
     ProductPackResponse removePromotionFromPack(Long packId);
 }
+

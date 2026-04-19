@@ -3,7 +3,7 @@ package cm.dolers.laine_deco.interfaces.rest;
 import cm.dolers.laine_deco.application.dto.PromotionResponse;
 import cm.dolers.laine_deco.application.usecase.PromotionService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,8 +18,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/public/promotions")
 @RequiredArgsConstructor
-@Slf4j
+
 public class PublicPromotionController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PublicPromotionController.class);
     private final PromotionService promotionService;
 
     /**

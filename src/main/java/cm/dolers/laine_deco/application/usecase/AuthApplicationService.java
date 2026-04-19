@@ -9,10 +9,8 @@ import cm.dolers.laine_deco.infrastructure.persistence.entity.UserEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.AuthSessionJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.PasswordResetTokenJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.UserJpaRepository;
-import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,18 +18,19 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @Transactional
 public class AuthApplicationService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthApplicationService.class);
+    
     private final UserJpaRepository userRepository;
     private final AuthSessionJpaRepository sessionRepository;
     private final PasswordResetTokenJpaRepository resetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
-    private final RestClient restClient;
+    private final com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier googleIdTokenVerifier;
     private final long accessTokenMinutes;
     private final long rememberMeDays;
     private final long forgotPasswordMinutes;
@@ -53,7 +52,10 @@ public class AuthApplicationService {
         this.accessTokenMinutes = accessTokenMinutes;
         this.rememberMeDays = rememberMeDays;
         this.forgotPasswordMinutes = forgotPasswordMinutes;
-        this.restClient = RestClient.builder().build();
+        this.googleIdTokenVerifier = new com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(
+            new com.google.api.client.http.javanet.NetHttpTransport(), 
+            new com.google.api.client.json.gson.GsonFactory()
+        ).build();
     }
 
     public AuthResult signup(String name, String email, String password, String confirmPassword, boolean rememberMe) {
@@ -86,41 +88,50 @@ public class AuthApplicationService {
         return buildSession(user, rememberMe);
     }
 
-    public AuthResult googleSignin(String idToken, boolean rememberMe) {
-        Map<String, Object> googlePayload;
+    public AuthResult googleSignin(String idTokenString, boolean rememberMe) {
+        com.google.api.client.googleapis.auth.oauth2.GoogleIdToken idToken;
         try {
-            googlePayload = restClient.get()
-                    .uri(URI.create("https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken))
-                    .retrieve()
-                    .body(Map.class);
+            idToken = googleIdTokenVerifier.verify(idTokenString);
+            if (idToken == null) {
+                throw new AuthException("Invalid Google token");
+            }
         } catch (Exception ex) {
+            log.error("Google token verification failed", ex);
             throw new AuthException("Invalid Google token");
         }
-        if (googlePayload == null || !Boolean.parseBoolean(String.valueOf(googlePayload.get("email_verified")))) {
+        
+        com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload = idToken.getPayload();
+        
+        if (!Boolean.TRUE.equals(payload.getEmailVerified())) {
             throw new AuthException("Google email is not verified");
         }
 
-        String email = normalizeEmail(String.valueOf(googlePayload.get("email")));
-        String googleSub = String.valueOf(googlePayload.get("sub"));
-        String name = String.valueOf(googlePayload.getOrDefault("name", email));
+        String email = normalizeEmail(payload.getEmail());
+        String googleSub = payload.getSubject();
+        String rawName = (String) payload.get("name");
+        final String finalName = rawName != null ? rawName : email;
 
-        UserEntity user = userRepository.findByEmail(email).orElseGet(() -> {
+        Optional<UserEntity> existingUserOpt = userRepository.findByEmail(email);
+        UserEntity googleUser;
+        if (existingUserOpt.isPresent()) {
+            googleUser = existingUserOpt.get();
+        } else {
             UserEntity created = new UserEntity();
             created.setEmail(email);
-            created.setName(name);
+            created.setName(finalName);
             created.setProvider(AuthProvider.GOOGLE);
             created.setProviderId(googleSub);
-            return userRepository.save(created);
-        });
+            googleUser = userRepository.save(created);
+        }
 
-        if (user.getProvider() == AuthProvider.LOCAL) {
+        if (googleUser.getProvider() == AuthProvider.LOCAL) {
             throw new AuthException("This email is already registered with password login");
         }
-        user.setProvider(AuthProvider.GOOGLE);
-        user.setProviderId(googleSub);
-        user.setName(name);
+        googleUser.setProvider(AuthProvider.GOOGLE);
+        googleUser.setProviderId(googleSub);
+        googleUser.setName(finalName);
 
-        return buildSession(user, rememberMe);
+        return buildSession(googleUser, rememberMe);
     }
 
     public void logout(String token) {
@@ -219,3 +230,4 @@ public class AuthApplicationService {
         }
     }
 }
+

@@ -4,12 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import cm.dolers.laine_deco.domain.model.SkillLevel;
 import java.time.Instant;
@@ -106,4 +103,27 @@ public class PatternEntity {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    private int downloadCount;
+    private String url;
+    private String needleSize;
+    private String yarnType;
+    private int estimatedHours;
+    private String description;
+    private String author;
+    public int getDownloadCount() { return downloadCount; }
+    public void setDownloadCount(int downloadCount) { this.downloadCount = downloadCount; }
+    public String getUrl() { return url; }
+    public void setUrl(String url) { this.url = url; }
+    public String getNeedleSize() { return needleSize; }
+    public void setNeedleSize(String needleSize) { this.needleSize = needleSize; }
+    public String getYarnType() { return yarnType; }
+    public void setYarnType(String yarnType) { this.yarnType = yarnType; }
+    public int getEstimatedHours() { return estimatedHours; }
+    public void setEstimatedHours(int estimatedHours) { this.estimatedHours = estimatedHours; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getAuthor() { return author; }
+    public void setAuthor(String author) { this.author = author; }
 }
+

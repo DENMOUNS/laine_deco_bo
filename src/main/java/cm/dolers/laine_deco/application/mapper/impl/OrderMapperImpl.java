@@ -15,7 +15,7 @@ public class OrderMapperImpl implements OrderMapper {
             .map(this::toDetailResponse)
             .toList();
 
-        // Créer le DTO pour les infos de livraison
+        // CrÃ©er le DTO pour les infos de livraison
         DeliveryInfoResponse deliveryInfo = new DeliveryInfoResponse(
             order.getDeliveryFirstName(),
             order.getDeliveryLastName(),
@@ -27,13 +27,13 @@ public class OrderMapperImpl implements OrderMapper {
             order.getDeliveryLongitude()
         );
 
-        // Créer le DTO pour le coupon appliqué
+        // CrÃ©er le DTO pour le coupon appliquÃ©
         CouponAppliedResponse couponApplied = order.getCouponCode() != null
             ? new CouponAppliedResponse(
                 order.getCouponCode(),
                 order.getCouponType(),
                 order.getDiscountAmount(),
-                null // On n'a pas la description stockée dans OrderEntity
+                null // On n'a pas la description stockÃ©e dans OrderEntity
             )
             : null;
 

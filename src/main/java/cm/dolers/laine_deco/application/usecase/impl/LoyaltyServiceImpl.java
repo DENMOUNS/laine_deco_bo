@@ -16,7 +16,7 @@ import cm.dolers.laine_deco.infrastructure.persistence.repository.UserLoyaltyPro
 import cm.dolers.laine_deco.infrastructure.persistence.repository.UserJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.LoyaltyRedemptionRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,8 +27,9 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class LoyaltyServiceImpl implements LoyaltyService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LoyaltyServiceImpl.class);
     private final UserLoyaltyProfileRepository loyaltyRepository;
     private final UserJpaRepository userRepository;
     private final LoyaltyRedemptionRepository redemptionRepository;
@@ -41,16 +42,16 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         log.info("Adding loyalty points for user: {}, amount: {}", userId, orderAmount);
 
         var user = userRepository.findById(userId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId));
 
         // Récupérer ou créer le profil de loyauté
         var profile = loyaltyRepository.findByUserId(userId)
-            .orElseGet(() -> {
-                var newProfile = new UserLoyaltyProfile();
-                newProfile.setUser(user);
-                newProfile.setCurrentTier(LoyaltyTier.STANDARD);
-                return newProfile;
-            });
+                .orElseGet(() -> {
+                    var newProfile = new UserLoyaltyProfile();
+                    newProfile.setUser(user);
+                    newProfile.setCurrentTier(LoyaltyTier.STANDARD);
+                    return newProfile;
+                });
 
         // Calculer les points à ajouter
         // Règle: 10 points de base, 15 si montant > 100.000
@@ -90,7 +91,8 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     @Transactional(readOnly = true)
     public UserLoyaltyResponse getUserLoyalty(Long userId) {
         var profile = loyaltyRepository.findByUserId(userId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.USER_NOT_FOUND, "User loyalty not found: " + userId));
+                .orElseThrow(
+                        () -> new ValidationException(ErrorCode.USER_NOT_FOUND, "User loyalty not found: " + userId));
         return loyaltyMapper.toResponse(profile);
     }
 
@@ -100,7 +102,8 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         log.info("Redeeming reward for user: {}, type: {}", userId, request.rewardType());
 
         var profile = loyaltyRepository.findByUserId(userId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.USER_NOT_FOUND, "User loyalty not found: " + userId));
+                .orElseThrow(
+                        () -> new ValidationException(ErrorCode.USER_NOT_FOUND, "User loyalty not found: " + userId));
 
         // Déterminer le type de récompense
         RewardType rewardType;
@@ -113,7 +116,8 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         // Vérifier que l'utilisateur a assez de points
         if (profile.getAvailablePoints() < rewardType.getPointsRequired()) {
             throw new ValidationException(ErrorCode.OPERATION_FAILED,
-                "Insufficient points: have " + profile.getAvailablePoints() + ", need " + rewardType.getPointsRequired());
+                    "Insufficient points: have " + profile.getAvailablePoints() + ", need "
+                            + rewardType.getPointsRequired());
         }
 
         // Créer la rédemption
@@ -133,7 +137,8 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         var saved = redemptionRepository.save(redemption);
         loyaltyRepository.save(profile);
 
-        log.info("Reward redeemed: id={}, type={}, points={}", saved.getId(), rewardType, rewardType.getPointsRequired());
+        log.info("Reward redeemed: id={}, type={}, points={}", saved.getId(), rewardType,
+                rewardType.getPointsRequired());
         return loyaltyMapper.toResponse(saved);
     }
 
@@ -141,13 +146,13 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     @Transactional(readOnly = true)
     public Page<LoyaltyRedemptionResponse> getUserRedemptions(Long userId, Pageable pageable) {
         return redemptionRepository.findByUserId(userId, pageable)
-            .map(loyaltyMapper::toResponse);
+                .map(loyaltyMapper::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<LoyaltyRedemptionResponse> getPendingRedemptions(Long userId, Pageable pageable) {
         return redemptionRepository.findByUserIdAndStatus(userId, LoyaltyRedemption.RedemptionStatus.PENDING, pageable)
-            .map(loyaltyMapper::toResponse);
+                .map(loyaltyMapper::toResponse);
     }
 }

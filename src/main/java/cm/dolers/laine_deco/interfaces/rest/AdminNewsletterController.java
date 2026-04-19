@@ -44,3 +44,4 @@ public class AdminNewsletterController {
         return ResponseEntity.noContent().build();
     }
 }
+

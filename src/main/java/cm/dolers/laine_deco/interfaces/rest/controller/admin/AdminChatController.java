@@ -4,7 +4,7 @@ import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.ChatService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -14,14 +14,16 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * Admin Controller pour le Chat
- * Responsabilité: Gérer les conversations du support (assignation, réponses, statuts)
+ * Responsabilité: Gérer les conversations du support (assignation, réponses,
+ * statuts)
  */
 @RestController
 @RequestMapping("/api/admin/chat")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
 public class AdminChatController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminChatController.class);
     private final ChatService chatService;
 
     @GetMapping("/conversations/open")
@@ -52,13 +54,12 @@ public class AdminChatController {
             @PathVariable Long id,
             @Valid @RequestBody CreateChatMessageRequest request) {
         log.info("POST /api/admin/chat/conversations/{}/reply", id);
-        
+
         var modifiedRequest = new CreateChatMessageRequest(
-            id,
-            request.message(),
-            request.senderType() != null ? request.senderType() : "ADMIN"
-        );
-        
+                id,
+                request.message(),
+                request.senderType() != null ? request.senderType() : "ADMIN");
+
         var response = chatService.sendAdminReply(modifiedRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

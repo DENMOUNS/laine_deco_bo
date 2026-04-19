@@ -1,5 +1,6 @@
 package cm.dolers.laine_deco.application.dto;
 
+
 public class AuthResult {
     private final String token;
     private final long expiresAtEpochSeconds;
@@ -29,3 +30,4 @@ public class AuthResult {
         return name;
     }
 }
+

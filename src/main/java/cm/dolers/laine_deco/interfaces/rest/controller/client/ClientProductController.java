@@ -5,9 +5,10 @@ import cm.dolers.laine_deco.application.usecase.ProductService;
 import cm.dolers.laine_deco.application.usecase.SimilarProductsService;
 import cm.dolers.laine_deco.application.mapper.ProductMapper;
 import cm.dolers.laine_deco.infrastructure.config.PaginationConstants;
+import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -24,12 +25,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/client/products")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasRole('CLIENT')")
 public class ClientProductController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClientProductController.class);
     private final ProductService productService;
     private final SimilarProductsService similarProductsService;
-    private final ProductJpaRepository productRepository;
+    private final ProductJpaRepository ProductJpaRepository;
     private final ProductMapper productMapper;
 
     /**
@@ -52,21 +54,20 @@ public class ClientProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize) {
         log.info("GET /api/client/products/search - Keyword: {}, page: {}, size: {}", keyword, page, pageSize);
-        
+
         int normalizedSize = PaginationConstants.normalizePageSize(pageSize);
         List<ProductResponse> results = productService.searchProducts(keyword);
-        
+
         // Appliquer la pagination manuellement
         int start = page * normalizedSize;
         int end = Math.min(start + normalizedSize, results.size());
         List<ProductResponse> pageContent = results.subList(start, end);
-        
+
         Page<ProductResponse> pageResult = new PageImpl<>(
-            pageContent,
-            org.springframework.data.domain.PageRequest.of(page, normalizedSize),
-            results.size()
-        );
-        
+                pageContent,
+                org.springframework.data.domain.PageRequest.of(page, normalizedSize),
+                results.size());
+
         return ResponseEntity.ok(pageResult);
     }
 
@@ -90,21 +91,20 @@ public class ClientProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize) {
         log.info("GET /api/client/products/new - page: {}, size: {}", page, pageSize);
-        
+
         int normalizedSize = PaginationConstants.normalizePageSize(pageSize);
         List<ProductDetailResponse> results = productService.getNewProducts(Integer.MAX_VALUE);
-        
+
         // Appliquer la pagination manuellement
         int start = page * normalizedSize;
         int end = Math.min(start + normalizedSize, results.size());
         List<ProductDetailResponse> pageContent = results.subList(start, end);
-        
+
         Page<ProductDetailResponse> pageResult = new PageImpl<>(
-            pageContent,
-            org.springframework.data.domain.PageRequest.of(page, normalizedSize),
-            results.size()
-        );
-        
+                pageContent,
+                org.springframework.data.domain.PageRequest.of(page, normalizedSize),
+                results.size());
+
         return ResponseEntity.ok(pageResult);
     }
 
@@ -115,7 +115,7 @@ public class ClientProductController {
     public ResponseEntity<ProductDetailWithSimilarsResponse> getProductWithSimilars(@PathVariable Long id) {
         log.info("GET /api/client/products/{}/with-similars", id);
 
-        var productEntity = productRepository.findById(id).orElse(null);
+        var productEntity = ProductJpaRepository.findById(id).orElse(null);
         if (productEntity == null) {
             return ResponseEntity.notFound().build();
         }
@@ -125,8 +125,8 @@ public class ClientProductController {
 
         List<ProductEntity> similarProducts = similarProductsService.findSimilarProducts(id, productEntity);
         var similarResponses = similarProducts.stream()
-            .map(productMapper::toResponse)
-            .toList();
+                .map(productMapper::toResponse)
+                .toList();
 
         return ResponseEntity.ok(new ProductDetailWithSimilarsResponse(productDetail, similarResponses));
     }

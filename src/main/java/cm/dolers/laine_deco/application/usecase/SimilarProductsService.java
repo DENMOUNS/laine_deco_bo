@@ -18,7 +18,7 @@ public interface SimilarProductsService {
      * - Excluant le produit lui-même
      *
      * @param productId ID du produit
-     * @param product Entité du produit
+     * @param product   Entité du produit
      * @return Liste de 3 à 5 produits similaires
      */
     List<ProductEntity> findSimilarProducts(Long productId, ProductEntity product);

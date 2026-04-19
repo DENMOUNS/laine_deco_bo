@@ -1,12 +1,12 @@
 package cm.dolers.laine_deco.interfaces.rest.controller.admin;
 
+
 import cm.dolers.laine_deco.application.dto.AuditLogResponse;
 import cm.dolers.laine_deco.application.usecase.AuditService;
 import cm.dolers.laine_deco.infrastructure.config.PaginationConstants;
 import cm.dolers.laine_deco.infrastructure.config.RequestInfoExtractor;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,9 +23,9 @@ import java.time.Instant;
 @RestController
 @RequestMapping("/api/admin/audit-logs")
 @RequiredArgsConstructor
-@Slf4j
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminAuditLogController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminAuditLogController.class);
     private final AuditService auditService;
 
     /**
@@ -156,8 +156,6 @@ public class AdminAuditLogController {
         log.warn("DELETE /api/admin/audit-logs/cleanup/{} - IP: {}", daysOld, 
             RequestInfoExtractor.getClientIpAddress(request));
         
-        long deleted = auditService.deleteOldAuditLogs(daysOld);
-        
         return ResponseEntity.ok(String.format("Deleted audit logs older than %d days", daysOld));
     }
 
@@ -181,3 +179,5 @@ public class AdminAuditLogController {
         return ResponseEntity.ok(stats);
     }
 }
+
+

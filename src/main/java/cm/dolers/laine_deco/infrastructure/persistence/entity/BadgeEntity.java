@@ -34,6 +34,9 @@ public class BadgeEntity {
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
+    @Column
+    private String criteria;
+
     public Long getId() {
         return id;
     }
@@ -81,4 +84,13 @@ public class BadgeEntity {
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
+
+    public String getCriteria() {
+        return criteria;
+    }
+
+    public void setCriteria(String criteria) {
+        this.criteria = criteria;
+    }
+
 }

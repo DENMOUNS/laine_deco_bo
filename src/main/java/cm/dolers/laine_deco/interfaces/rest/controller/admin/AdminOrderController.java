@@ -3,7 +3,7 @@ package cm.dolers.laine_deco.interfaces.rest.controller.admin;
 import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.OrderService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/orders")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
 public class AdminOrderController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminOrderController.class);
     private final OrderService orderService;
 
     @GetMapping("/{orderId}")

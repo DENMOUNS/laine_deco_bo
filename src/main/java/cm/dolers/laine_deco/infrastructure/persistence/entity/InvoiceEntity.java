@@ -94,4 +94,27 @@ public class InvoiceEntity {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    private String invoiceNumber;
+    private java.math.BigDecimal subtotal;
+    private java.math.BigDecimal taxAmount;
+    private java.math.BigDecimal totalAmount;
+    private String status;
+    private java.time.Instant issuedAt;
+    private java.time.Instant dueDate;
+    public String getInvoiceNumber() { return invoiceNumber; }
+    public void setInvoiceNumber(String invoiceNumber) { this.invoiceNumber = invoiceNumber; }
+    public java.math.BigDecimal getSubtotal() { return subtotal; }
+    public void setSubtotal(java.math.BigDecimal subtotal) { this.subtotal = subtotal; }
+    public java.math.BigDecimal getTaxAmount() { return taxAmount; }
+    public void setTaxAmount(java.math.BigDecimal taxAmount) { this.taxAmount = taxAmount; }
+    public java.math.BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(java.math.BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public java.time.Instant getIssuedAt() { return issuedAt; }
+    public void setIssuedAt(java.time.Instant issuedAt) { this.issuedAt = issuedAt; }
+    public java.time.Instant getDueDate() { return dueDate; }
+    public void setDueDate(java.time.Instant dueDate) { this.dueDate = dueDate; }
 }
+

@@ -15,3 +15,4 @@ public interface LegalPageService {
     LegalPageResponse unpublishPage(LegalPageType type);
     void deletePage(Long pageId);
 }
+

@@ -1,6 +1,5 @@
 package cm.dolers.laine_deco.application.dto;
 
-import java.time.Instant;
 
 /**
  * Record DTO pour créer/modifier un utilisateur
@@ -11,3 +10,4 @@ public record CreateUserRequest(
     String name,
     String phone
 ) {}
+

@@ -8,7 +8,7 @@ import cm.dolers.laine_deco.application.usecase.ProductSearchService;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,9 +21,10 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class ProductSearchServiceImpl implements ProductSearchService {
-    private final ProductJpaRepository productRepository;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProductSearchServiceImpl.class);
+    private final ProductJpaRepository ProductJpaRepository;
     private final ProductMapper productMapper;
 
     private static final int MAX_PAGE_SIZE = 100;
@@ -31,8 +32,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponse> searchByCriteria(ProductSearchCriteria criteria) {
-        log.info("Searching products by criteria - keyword: {}, category: {}, price: {} - {}", 
-            criteria.keyword(), criteria.categoryId(), criteria.minPrice(), criteria.maxPrice());
+        log.info("Searching products by criteria - keyword: {}, category: {}, price: {} - {}",
+                criteria.keyword(), criteria.categoryId(), criteria.minPrice(), criteria.maxPrice());
 
         // Valider la pagination
         int pageSize = Math.min(criteria.pageSize() != null ? criteria.pageSize() : 20, MAX_PAGE_SIZE);
@@ -44,16 +45,15 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
         // Construire la specification avec tous les critères
         Specification<ProductEntity> spec = ProductSpecifications.byCriteria(
-            criteria.keyword(),
-            criteria.categoryId(),
-            criteria.minPrice(),
-            criteria.maxPrice(),
-            criteria.minRating(),
-            criteria.inStock()
-        );
+                criteria.keyword(),
+                criteria.categoryId(),
+                criteria.minPrice(),
+                criteria.maxPrice(),
+                criteria.minRating(),
+                criteria.inStock());
 
         // Exécuter la recherche
-        Page<ProductEntity> results = productRepository.findAll(spec, pageable);
+        Page<ProductEntity> results = ProductJpaRepository.findAll(spec, pageable);
         log.info("Found {} products", results.getTotalElements());
 
         return results.map(productMapper::toResponse);
@@ -65,9 +65,10 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         log.info("Searching by keyword: {}", keyword);
 
         pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("viewsCount").descending().and(Sort.by("name").ascending()));
+        Pageable pageable = PageRequest.of(page, pageSize,
+                Sort.by("viewsCount").descending().and(Sort.by("name").ascending()));
 
-        Page<ProductEntity> results = productRepository.searchByKeyword(keyword, pageable);
+        Page<ProductEntity> results = ProductJpaRepository.searchByKeyword(keyword, pageable);
         log.info("Found {} products for keyword: {}", results.getTotalElements(), keyword);
 
         return results.map(productMapper::toResponse);
@@ -81,7 +82,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, pageSize);
 
-        Page<ProductEntity> results = productRepository.findPopularProducts(pageable);
+        Page<ProductEntity> results = ProductJpaRepository.findPopularProducts(pageable);
         return results.map(productMapper::toResponse);
     }
 
@@ -94,7 +95,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         Pageable pageable = PageRequest.of(page, pageSize);
 
         int rating = minRating != null ? minRating : 4; // Par défaut 4+
-        Page<ProductEntity> results = productRepository.findTopRatedProducts(rating, pageable);
+        Page<ProductEntity> results = ProductJpaRepository.findTopRatedProducts(rating, pageable);
 
         return results.map(productMapper::toResponse);
     }
@@ -107,7 +108,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, pageSize);
 
-        Page<ProductEntity> results = productRepository.findNewestProducts(pageable);
+        Page<ProductEntity> results = ProductJpaRepository.findNewestProducts(pageable);
         return results.map(productMapper::toResponse);
     }
 
@@ -120,7 +121,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
             return List.of();
         }
 
-        return productRepository.findProductNameSuggestions(prefix);
+        return ProductJpaRepository.findProductNameSuggestions(prefix);
     }
 
     @Override
@@ -131,9 +132,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("name").ascending());
 
-        Page<ProductEntity> results = productRepository.findByCategoryIdAndStockQuantityGreaterThan(
-            categoryId, 0, pageable
-        );
+        Page<ProductEntity> results = ProductJpaRepository.findByCategoryIdAndStockQuantityGreaterThan(
+                categoryId, 0, pageable);
 
         return results.map(productMapper::toResponse);
     }
@@ -147,7 +147,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         Pageable pageable = PageRequest.of(page, pageSize);
 
         Specification<ProductEntity> spec = ProductSpecifications.inStock();
-        Page<ProductEntity> results = productRepository.findAll(spec, pageable);
+        Page<ProductEntity> results = ProductJpaRepository.findAll(spec, pageable);
 
         return results.map(productMapper::toResponse);
     }

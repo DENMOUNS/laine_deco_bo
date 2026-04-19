@@ -1,15 +1,13 @@
 package cm.dolers.laine_deco.application.mapper.impl;
 
-import cm.dolers.laine_deco.infrastructure.persistence.entity.OrderEntity;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.OrderStatusHistoryEntity;
 import cm.dolers.laine_deco.application.dto.OrderTrackingResponse;
 import cm.dolers.laine_deco.application.mapper.OrderTrackingMapper;
-import org.springframework.stereotype.Component;
-
+import cm.dolers.laine_deco.infrastructure.persistence.entity.OrderEntity;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Component
 public class OrderTrackingMapperImpl implements OrderTrackingMapper {
@@ -23,11 +21,11 @@ public class OrderTrackingMapperImpl implements OrderTrackingMapper {
         response.setItemsCount(entity.getDetails().size());
         response.setCreatedAt(entity.getCreatedAt().toString());
         
-        // Estimation livraison: 5 jours après création
+        // Estimation livraison: 5 jours aprÃ¨s crÃ©ation
         Instant estimatedDelivery = entity.getCreatedAt().plus(5, ChronoUnit.DAYS);
         response.setEstimatedDeliveryDate(estimatedDelivery.toString());
         
-        // Historique des statuts (décroissant: récent → ancien)
+        // Historique des statuts (dÃ©croissant: rÃ©cent â†’ ancien)
         List<OrderTrackingResponse.OrderStatusHistoryDto> history = entity.getStatusHistory().stream()
             .sorted((a, b) -> b.getChangedAt().compareTo(a.getChangedAt()))
             .map(sh -> new OrderTrackingResponse.OrderStatusHistoryDto(
@@ -42,3 +40,4 @@ public class OrderTrackingMapperImpl implements OrderTrackingMapper {
         return response;
     }
 }
+

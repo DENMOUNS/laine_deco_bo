@@ -1,5 +1,6 @@
 package cm.dolers.laine_deco.interfaces.rest;
 
+
 import cm.dolers.laine_deco.application.dto.LegalPageResponse;
 import cm.dolers.laine_deco.application.usecase.LegalPageService;
 import cm.dolers.laine_deco.domain.model.LegalPageType;
@@ -58,3 +59,4 @@ public class PublicLegalPageController {
         return ResponseEntity.ok(response);
     }
 }
+

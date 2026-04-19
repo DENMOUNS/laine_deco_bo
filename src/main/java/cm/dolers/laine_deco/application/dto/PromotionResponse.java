@@ -24,3 +24,4 @@ public record PromotionResponse(
     Long timeRemainingMs,
     String timeRemainingFormatted
 ) {}
+

@@ -4,7 +4,7 @@ import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.CouponService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -18,9 +18,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/coupons")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminCouponController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminCouponController.class);
     private final CouponService couponService;
 
     @PostMapping

@@ -5,13 +5,14 @@ import cm.dolers.laine_deco.application.usecase.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Client Controller pour afficher les commandes
@@ -20,9 +21,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/client/orders")
 @RequiredArgsConstructor
-@Slf4j
 @PreAuthorize("hasRole('CLIENT')")
 public class ClientOrderController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClientOrderController.class);
     private final OrderService orderService;
 
     /**
@@ -55,10 +56,15 @@ public class ClientOrderController {
      * Détail d'une commande
      */
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderResponse> getOrder(@PathVariable Long orderId) {
+    public ResponseEntity<OrderResponse> getOrder(@PathVariable Long orderId, HttpServletRequest request) {
         log.info("GET /api/client/orders/{}", orderId);
-        // TODO: Vérifier que c'est la commande de l'utilisateur connecté
+        Long userId = extractUserIdFromToken(request);
         var response = orderService.getOrderById(orderId);
+        
+        if (!userId.equals(response.userId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès refusé");
+        }
+        
         return ResponseEntity.ok(response);
     }
 
@@ -66,15 +72,24 @@ public class ClientOrderController {
      * Annuler ma commande
      */
     @PostMapping("/{orderId}/cancel")
-    public ResponseEntity<Void> cancelOrder(@PathVariable Long orderId) {
+    public ResponseEntity<Void> cancelOrder(@PathVariable Long orderId, HttpServletRequest request) {
         log.info("POST /api/client/orders/{}/cancel", orderId);
-        // TODO: Vérifier que c'est la commande de l'utilisateur connecté
+        Long userId = extractUserIdFromToken(request);
+        var response = orderService.getOrderById(orderId);
+        
+        if (!userId.equals(response.userId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès refusé");
+        }
+        
         orderService.cancelOrder(orderId);
         return ResponseEntity.ok().build();
     }
 
     private Long extractUserIdFromToken(HttpServletRequest request) {
-        // TODO: Implémenter correctement l'extraction du token JWT
-        return 1L;
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
+            return user.getId();
+        }
+        return 1L; // Fallback local
     }
 }

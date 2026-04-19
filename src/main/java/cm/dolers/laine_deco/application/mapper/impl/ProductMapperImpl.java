@@ -3,8 +3,8 @@ package cm.dolers.laine_deco.application.mapper.impl;
 import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.mapper.ProductMapper;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductEntity;
-import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ProductMapperImpl implements ProductMapper {

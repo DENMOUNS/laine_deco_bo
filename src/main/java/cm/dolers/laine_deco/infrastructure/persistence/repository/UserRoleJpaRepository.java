@@ -1,7 +1,6 @@
 package cm.dolers.laine_deco.infrastructure.persistence.repository;
 
 import cm.dolers.laine_deco.domain.model.Role;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.UserEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.UserRoleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

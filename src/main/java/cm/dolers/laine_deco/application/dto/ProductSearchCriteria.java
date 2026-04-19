@@ -1,5 +1,6 @@
 package cm.dolers.laine_deco.application.dto;
 
+
 import java.math.BigDecimal;
 
 /**
@@ -17,3 +18,4 @@ public record ProductSearchCriteria(
     Integer pageNumber,                // Numéro de page (0-based)
     Integer pageSize                   // Taille de page (max 100)
 ) {}
+

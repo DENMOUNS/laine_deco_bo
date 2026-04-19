@@ -8,24 +8,23 @@ import cm.dolers.laine_deco.domain.exception.UserException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.NotificationEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class NotificationServiceImpl implements NotificationService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NotificationServiceImpl.class);
     private final NotificationJpaRepository notificationRepository;
     private final UserJpaRepository userRepository;
-    private final ChatConversationJpaRepository conversationRepository;
+    private final ConversationJpaRepository conversationRepository;
     private final OrderJpaRepository orderRepository;
     private final NotificationMapper notificationMapper;
 
@@ -37,16 +36,16 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Creating notification for user: {}", request.userId());
 
         var user = userRepository.findById(request.userId())
-            .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "User ID: " + request.userId()));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "User ID: " + request.userId()));
 
         try {
             var notification = new NotificationEntity();
             notification.setUser(user);
-            notification.setType(request.type());
+            notification.setType(cm.dolers.laine_deco.domain.model.NotificationType.valueOf(request.type()));
             notification.setTitle(request.title());
             notification.setMessage(request.message());
             notification.setIcon(request.icon());
-            notification.setRelatedId(request.relatedId());
+
             notification.setActionUrl(request.actionUrl());
             notification.setIsRead(false);
 
@@ -63,7 +62,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public NotificationResponse getNotificationById(Long notificationId) {
         var notification = notificationRepository.findById(notificationId)
-            .orElseThrow(() -> new UserException(ErrorCode.NOTIFICATION_NOT_FOUND, "ID: " + notificationId));
+                .orElseThrow(() -> new UserException(ErrorCode.NOTIFICATION_NOT_FOUND, "ID: " + notificationId));
         return notificationMapper.toResponse(notification);
     }
 
@@ -71,16 +70,16 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public Page<NotificationResponse> getUserNotifications(Long userId, Pageable pageable) {
         return notificationRepository.findByUserId(userId, pageable)
-            .map(notificationMapper::toResponse);
+                .map(notificationMapper::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<NotificationResponse> getUnreadNotifications(Long userId) {
         return notificationRepository.findByUserIdAndIsReadFalse(userId)
-            .stream()
-            .map(notificationMapper::toResponse)
-            .toList();
+                .stream()
+                .map(notificationMapper::toResponse)
+                .toList();
     }
 
     @Override
@@ -93,7 +92,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void markAsRead(Long notificationId) {
         var notification = notificationRepository.findById(notificationId)
-            .orElseThrow(() -> new UserException(ErrorCode.NOTIFICATION_NOT_FOUND, "ID: " + notificationId));
+                .orElseThrow(() -> new UserException(ErrorCode.NOTIFICATION_NOT_FOUND, "ID: " + notificationId));
         notification.setIsRead(true);
         notification.setReadAt(Instant.now());
         notificationRepository.save(notification);
@@ -125,17 +124,18 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notifying chat reply for conversation: {}", request.conversationId());
 
         var conversation = conversationRepository.findById(request.conversationId())
-            .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND, "Conversation ID: " + request.conversationId()));
+                .orElseThrow(() -> new UserException(ErrorCode.CHAT_NOT_FOUND,
+                        "Conversation ID: " + request.conversationId()));
 
         try {
             var notification = new NotificationEntity();
             notification.setUser(conversation.getClient());
-            notification.setType("CHAT_MESSAGE_REPLY");
+            notification.setType(cm.dolers.laine_deco.domain.model.NotificationType.ORDER);
             notification.setTitle("Nouvelle réponse au chat");
-            notification.setMessage(String.format("%s a répondu: %s", request.repliedByName(), 
-                request.message().substring(0, Math.min(50, request.message().length())) + "..."));
+            notification.setMessage(String.format("%s a répondu: %s", request.repliedByName(),
+                    request.message().substring(0, Math.min(50, request.message().length())) + "..."));
             notification.setIcon("💬");
-            notification.setRelatedId(String.valueOf(request.conversationId()));
+
             notification.setActionUrl("/chat/conversations/" + request.conversationId());
             notification.setIsRead(false);
 
@@ -152,18 +152,18 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notifying order status change for order: {}", request.orderId());
 
         var order = orderRepository.findById(request.orderId())
-            .orElseThrow(() -> new UserException(ErrorCode.ORDER_NOT_FOUND, "Order ID: " + request.orderId()));
+                .orElseThrow(() -> new UserException(ErrorCode.ORDER_NOT_FOUND, "Order ID: " + request.orderId()));
 
         try {
             var notification = new NotificationEntity();
             notification.setUser(order.getClient());
-            notification.setType("ORDER_STATUS_CHANGED");
+            notification.setType(cm.dolers.laine_deco.domain.model.NotificationType.ORDER);
             notification.setTitle("Statut de commande mis à jour");
-            notification.setMessage(String.format("Votre commande est passée de %s à %s", 
-                request.oldStatus(), request.newStatus()));
-            
+            notification.setMessage(String.format("Votre commande est passée de %s à %s",
+                    request.oldStatus(), request.newStatus()));
+
             // Icônes selon le statut
-            var icon = switch(request.newStatus()) {
+            var icon = switch (request.newStatus()) {
                 case "CONFIRMED" -> "✅";
                 case "PREPARING" -> "📦";
                 case "SHIPPED" -> "🚚";
@@ -171,9 +171,9 @@ public class NotificationServiceImpl implements NotificationService {
                 case "CANCELLED" -> "❌";
                 default -> "📋";
             };
-            
+
             notification.setIcon(icon);
-            notification.setRelatedId(String.valueOf(request.orderId()));
+
             notification.setActionUrl("/orders/" + request.orderId());
             notification.setIsRead(false);
 
@@ -190,16 +190,16 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Broadcasting system notification to: {}", request.targetRole());
 
         try {
-            List<com.dolers.laine_deco.infrastructure.persistence.entity.UserEntity> targetUsers;
-            
+            List<cm.dolers.laine_deco.infrastructure.persistence.entity.UserEntity> targetUsers;
+
             if ("ALL".equals(request.targetRole())) {
                 targetUsers = userRepository.findAll();
             } else if ("ADMIN".equals(request.targetRole())) {
-                targetUsers = userRepository.findByRole("ADMIN");
+                targetUsers = userRepository.findByRole(cm.dolers.laine_deco.domain.model.Role.ADMIN);
             } else if ("FINANCE".equals(request.targetRole())) {
-                targetUsers = userRepository.findByRole("FINANCE");
+                targetUsers = userRepository.findByRole(cm.dolers.laine_deco.domain.model.Role.FINANCE);
             } else if ("CLIENT".equals(request.targetRole())) {
-                targetUsers = userRepository.findByRole("CLIENT");
+                targetUsers = userRepository.findByRole(cm.dolers.laine_deco.domain.model.Role.CLIENT);
             } else {
                 targetUsers = List.of();
             }
@@ -207,13 +207,13 @@ public class NotificationServiceImpl implements NotificationService {
             for (var user : targetUsers) {
                 var notification = new NotificationEntity();
                 notification.setUser(user);
-                notification.setType("SYSTEM_ANNOUNCEMENT");
+                notification.setType(cm.dolers.laine_deco.domain.model.NotificationType.CUSTOMER);
                 notification.setTitle(request.title());
                 notification.setMessage(request.message());
                 notification.setIcon(request.icon());
                 notification.setActionUrl(request.actionUrl());
                 notification.setIsRead(false);
-                
+
                 notificationRepository.save(notification);
             }
 
@@ -229,16 +229,16 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notifying badge earned for user: {} - Badge: {}", userId, badgeName);
 
         var user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId));
 
         try {
             var notification = new NotificationEntity();
             notification.setUser(user);
-            notification.setType("BADGE_EARNED");
+            notification.setType(cm.dolers.laine_deco.domain.model.NotificationType.CUSTOMER);
             notification.setTitle("🏆 Badge obtenu!");
             notification.setMessage(String.format("Vous avez obtenu le badge: %s - %s", badgeName, badgeDescription));
             notification.setIcon("🏆");
-            notification.setRelatedId(badgeName);
+
             notification.setActionUrl("/badges/" + badgeName);
             notification.setIsRead(false);
 
@@ -254,16 +254,16 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notifying coupon available for user: {} - Code: {}", userId, couponCode);
 
         var user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId));
 
         try {
             var notification = new NotificationEntity();
             notification.setUser(user);
-            notification.setType("COUPON_AVAILABLE");
+            notification.setType(cm.dolers.laine_deco.domain.model.NotificationType.ORDER);
             notification.setTitle("🎉 Coupon disponible!");
             notification.setMessage(String.format("Utilisez le code %s pour %s de réduction!", couponCode, discount));
             notification.setIcon("🎉");
-            notification.setRelatedId(couponCode);
+
             notification.setActionUrl("/coupons/" + couponCode);
             notification.setIsRead(false);
 
@@ -279,18 +279,18 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notifying all users about promo event: {}", eventName);
 
         try {
-            var users = userRepository.findByRole("CLIENT");
-            
+            var users = userRepository.findByRole(cm.dolers.laine_deco.domain.model.Role.CLIENT);
+
             for (var user : users) {
                 var notification = new NotificationEntity();
                 notification.setUser(user);
-                notification.setType("PROMO_EVENT_ACTIVATED");
+                notification.setType(cm.dolers.laine_deco.domain.model.NotificationType.ORDER);
                 notification.setTitle("⭐ Événement promotionnel!");
                 notification.setMessage(String.format("%s - %s", eventName, description));
                 notification.setIcon("⭐");
                 notification.setActionUrl("/promo-events");
                 notification.setIsRead(false);
-                
+
                 notificationRepository.save(notification);
             }
 
@@ -306,16 +306,17 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notifying RMA approved for user: {} - RMA: {}", userId, rmaNumber);
 
         var user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId));
 
         try {
             var notification = new NotificationEntity();
             notification.setUser(user);
-            notification.setType("RMA_APPROVED");
+            notification.setType(cm.dolers.laine_deco.domain.model.NotificationType.ORDER);
             notification.setTitle("✅ Retour approuvé");
-            notification.setMessage(String.format("Votre demande de retour %s a été approuvée. Veuillez préparer le colis.", rmaNumber));
+            notification.setMessage(String
+                    .format("Votre demande de retour %s a été approuvée. Veuillez préparer le colis.", rmaNumber));
             notification.setIcon("✅");
-            notification.setRelatedId(rmaNumber);
+            // notification.setRelatedId(rmaNumber);
             notification.setActionUrl("/rma/" + rmaNumber);
             notification.setIsRead(false);
 
@@ -331,16 +332,17 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notifying RMA rejected for user: {} - RMA: {}", userId, rmaNumber);
 
         var user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "User ID: " + userId));
 
         try {
             var notification = new NotificationEntity();
             notification.setUser(user);
-            notification.setType("RMA_REJECTED");
+            notification.setType(cm.dolers.laine_deco.domain.model.NotificationType.ORDER);
             notification.setTitle("❌ Retour rejeté");
-            notification.setMessage(String.format("Votre demande de retour %s a été rejetée. Raison: %s", rmaNumber, reason));
+            notification.setMessage(
+                    String.format("Votre demande de retour %s a été rejetée. Raison: %s", rmaNumber, reason));
             notification.setIcon("❌");
-            notification.setRelatedId(rmaNumber);
+            // notification.setRelatedId(rmaNumber);
             notification.setActionUrl("/rma/" + rmaNumber);
             notification.setIsRead(false);
 
@@ -354,7 +356,15 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public Page<NotificationResponse> getNotificationsByType(Long userId, String type, Pageable pageable) {
         log.info("Getting notifications by type: {} for user: {}", type, userId);
-        return notificationRepository.findByUserIdAndType(userId, type, pageable)
-            .map(notificationMapper::toResponse);
+        return notificationRepository
+                .findByUserIdAndType(userId, cm.dolers.laine_deco.domain.model.NotificationType.valueOf(type), pageable)
+                .map(notificationMapper::toResponse);
+    }
+
+    @Override
+    public void cleanOldNotifications(int daysOld) {
+        log.info("Cleaning notifications older than {} days", daysOld);
+        java.time.Instant threshold = java.time.Instant.now().minus(java.time.Duration.ofDays(daysOld));
+        notificationRepository.deleteByCreatedAtBefore(threshold);
     }
 }

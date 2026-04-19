@@ -1,15 +1,6 @@
 package cm.dolers.laine_deco.infrastructure.persistence.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,23 +8,38 @@ import java.util.List;
 @Entity
 @Table(name = "conversations")
 public class ConversationEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 🔹 Client (obligatoire)
     @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "FK_conversations_user_id"))
-    private UserEntity user;
+    @JoinColumn(
+        name = "client_id",
+        nullable = false,
+        foreignKey = @ForeignKey(name = "FK_conversations_client_id")
+    )
+    private UserEntity client;
 
+    // 🔹 Agent (optionnel)
+    @ManyToOne
+    @JoinColumn(
+        name = "agent_id",
+        foreignKey = @ForeignKey(name = "FK_conversations_agent_id")
+    )
+    private UserEntity agent;
+
+    // 🔹 Messages (relation propre)
+    @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatMessageEntity> messages = new ArrayList<>();
+
+    // 🔹 Infos conversation
     @Column(name = "last_message")
     private String lastMessage;
 
     @Column(name = "unread_count")
     private Integer unreadCount = 0;
-
-    @OneToMany(orphanRemoval = true)
-    @JoinColumn(name = "conversation_id", foreignKey = @ForeignKey(name = "FK_chat_messages_conversation_id"))
-    private List<ChatMessageEntity> messages = new ArrayList<>();
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
@@ -41,20 +47,46 @@ public class ConversationEntity {
     @Column(nullable = false)
     private Instant updatedAt = Instant.now();
 
+    @Column(name = "closed_at")
+    private Instant closedAt;
+
+    @Column(name = "resolved_at")
+    private Instant resolvedAt;
+
+    @Column(name = "last_message_at")
+    private Instant lastMessageAt;
+
+    @Column(nullable = false)
+    private String status;
+
+    // ================= GETTERS / SETTERS =================
+
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public UserEntity getClient() {
+        return client;
     }
 
-    public UserEntity getUser() {
-        return user;
+    public void setClient(UserEntity client) {
+        this.client = client;
     }
 
-    public void setUser(UserEntity user) {
-        this.user = user;
+    public UserEntity getAgent() {
+        return agent;
+    }
+
+    public void setAgent(UserEntity agent) {
+        this.agent = agent;
+    }
+
+    public List<ChatMessageEntity> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<ChatMessageEntity> messages) {
+        this.messages = messages;
     }
 
     public String getLastMessage() {
@@ -73,14 +105,6 @@ public class ConversationEntity {
         this.unreadCount = unreadCount;
     }
 
-    public List<ChatMessageEntity> getMessages() {
-        return messages;
-    }
-
-    public void setMessages(List<ChatMessageEntity> messages) {
-        this.messages = messages;
-    }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -95,5 +119,37 @@ public class ConversationEntity {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Instant getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Instant closedAt) {
+        this.closedAt = closedAt;
+    }
+
+    public Instant getResolvedAt() {
+        return resolvedAt;
+    }
+
+    public void setResolvedAt(Instant resolvedAt) {
+        this.resolvedAt = resolvedAt;
+    }
+
+    public Instant getLastMessageAt() {
+        return lastMessageAt;
+    }
+
+    public void setLastMessageAt(Instant lastMessageAt) {
+        this.lastMessageAt = lastMessageAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

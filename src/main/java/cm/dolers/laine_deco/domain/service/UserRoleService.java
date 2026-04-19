@@ -4,7 +4,7 @@ import cm.dolers.laine_deco.domain.model.Role;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.UserEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.UserRoleEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.UserRoleJpaRepository;
-import java.util.HashSet;
+
 import java.util.Set;
 import org.springframework.stereotype.Service;
 

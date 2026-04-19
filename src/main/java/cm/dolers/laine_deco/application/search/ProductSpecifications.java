@@ -30,10 +30,9 @@ public class ProductSpecifications {
             if (keyword != null && !keyword.isBlank()) {
                 String searchPattern = "%" + keyword.toLowerCase() + "%";
                 predicates.add(cb.or(
-                    cb.like(cb.lower(root.get("name")), searchPattern),
-                    cb.like(cb.lower(root.get("description")), searchPattern),
-                    cb.like(root.get("sku"), searchPattern)
-                ));
+                        cb.like(cb.lower(root.get("name")), searchPattern),
+                        cb.like(cb.lower(root.get("description")), searchPattern),
+                        cb.like(root.get("sku"), searchPattern)));
             }
 
             // Filtre par catégorie
@@ -75,10 +74,9 @@ public class ProductSpecifications {
             }
             String searchPattern = "%" + keyword.toLowerCase() + "%";
             return cb.or(
-                cb.like(cb.lower(root.get("name")), searchPattern),
-                cb.like(cb.lower(root.get("description")), searchPattern),
-                cb.like(root.get("sku"), searchPattern)
-            );
+                    cb.like(cb.lower(root.get("name")), searchPattern),
+                    cb.like(cb.lower(root.get("description")), searchPattern),
+                    cb.like(root.get("sku"), searchPattern));
         };
     }
 

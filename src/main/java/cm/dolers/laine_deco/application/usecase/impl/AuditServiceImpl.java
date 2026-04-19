@@ -7,7 +7,7 @@ import cm.dolers.laine_deco.application.usecase.AuditService;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.AuditLogEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.AuditLogRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,14 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 @Transactional
 public class AuditServiceImpl implements AuditService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuditServiceImpl.class);
     private final AuditLogRepository auditLogRepository;
     private final AuditLogMapper auditLogMapper;
 
@@ -39,11 +38,10 @@ public class AuditServiceImpl implements AuditService {
             String queryString,
             String ipAddress,
             String userAgent) {
-        
+
         return logActionWithData(
-            userId, userEmail, action, entityType, entityId, description,
-            null, null, httpMethod, requestPath, queryString, ipAddress, userAgent, "SUCCESS", null
-        );
+                userId, userEmail, action, entityType, entityId, description,
+                null, null, httpMethod, requestPath, queryString, ipAddress, userAgent, "SUCCESS", null);
     }
 
     @Override
@@ -85,7 +83,7 @@ public class AuditServiceImpl implements AuditService {
         AuditLogEntity saved = auditLogRepository.save(auditLog);
 
         log.info("Audit logged - User: {}, Action: {} {} {}, Entity: {}/{}",
-            userEmail, httpMethod, requestPath, action, entityType, entityId);
+                userEmail, httpMethod, requestPath, action, entityType, entityId);
 
         return auditLogMapper.toResponse(saved);
     }
@@ -99,41 +97,40 @@ public class AuditServiceImpl implements AuditService {
             String userAgent) {
 
         return logActionWithData(
-            userId, userEmail,
-            request.action(),
-            request.entityType(),
-            request.entityId(),
-            request.description(),
-            request.oldData(),
-            request.newData(),
-            request.httpMethod(),
-            request.requestPath(),
-            request.queryString(),
-            ipAddress, userAgent,
-            request.status(),
-            request.errorMessage()
-        );
+                userId, userEmail,
+                request.action(),
+                request.entityType(),
+                request.entityId(),
+                request.description(),
+                request.oldData(),
+                request.newData(),
+                request.httpMethod(),
+                request.requestPath(),
+                request.queryString(),
+                ipAddress, userAgent,
+                request.status(),
+                request.errorMessage());
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<AuditLogResponse> getUserAuditLogs(Long userId, Pageable pageable) {
         return auditLogRepository.findByUserId(userId, pageable)
-            .map(auditLogMapper::toResponse);
+                .map(auditLogMapper::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<AuditLogResponse> getAuditLogsByAction(String action, Pageable pageable) {
         return auditLogRepository.findByAction(action, pageable)
-            .map(auditLogMapper::toResponse);
+                .map(auditLogMapper::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<AuditLogResponse> getAuditLogsForEntity(String entityType, Long entityId, Pageable pageable) {
         return auditLogRepository.findByEntityTypeAndEntityId(entityType, entityId, pageable)
-            .map(auditLogMapper::toResponse);
+                .map(auditLogMapper::toResponse);
     }
 
     @Override
@@ -151,14 +148,14 @@ public class AuditServiceImpl implements AuditService {
         Instant end = endTime != null ? endTime : Instant.now();
 
         return auditLogRepository.searchAuditLogs(userId, action, entityType, status, start, end, pageable)
-            .map(auditLogMapper::toResponse);
+                .map(auditLogMapper::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<AuditLogResponse> getFailedAuditLogs(Pageable pageable) {
         return auditLogRepository.findFailedAuditLogs(pageable)
-            .map(auditLogMapper::toResponse);
+                .map(auditLogMapper::toResponse);
     }
 
     @Override
@@ -168,26 +165,25 @@ public class AuditServiceImpl implements AuditService {
         Instant end = endTime != null ? endTime : Instant.now();
 
         Page<AuditLogEntity> logs = auditLogRepository.findAuditLogsByDateRange(
-            start, end,
-            org.springframework.data.domain.PageRequest.of(0, 10000) // Récupérer max 10k logs
+                start, end,
+                org.springframework.data.domain.PageRequest.of(0, 10000) // Récupérer max 10k logs
         );
 
         StringBuilder csv = new StringBuilder();
         csv.append("ID,User ID,Email,Action,Entity Type,Entity ID,Description,IP,Status,Timestamp\n");
 
         logs.forEach(log -> csv.append(String.format(
-            "%d,%d,%s,%s,%s,%d,%s,%s,%s,%s\n",
-            log.getId(),
-            log.getUserId() != null ? log.getUserId() : "",
-            escapeCSV(log.getUserEmail()),
-            log.getAction(),
-            log.getEntityType(),
-            log.getEntityId() != null ? log.getEntityId() : "",
-            escapeCSV(log.getDescription()),
-            log.getIpAddress(),
-            log.getStatus(),
-            log.getTimestamp()
-        )));
+                "%d,%d,%s,%s,%s,%d,%s,%s,%s,%s\n",
+                log.getId(),
+                log.getUserId() != null ? log.getUserId() : "",
+                escapeCSV(log.getUserEmail()),
+                log.getAction(),
+                log.getEntityType(),
+                log.getEntityId() != null ? log.getEntityId() : "",
+                escapeCSV(log.getDescription()),
+                log.getIpAddress(),
+                log.getStatus(),
+                log.getTimestamp())));
 
         log.info("Exported {} audit logs to CSV", logs.getTotalElements());
         return csv.toString();

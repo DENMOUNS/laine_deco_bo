@@ -1,23 +1,20 @@
 package cm.dolers.laine_deco.interfaces.rest.controller.public_api;
 
-import cm.dolers.laine_deco.application.dto.CategoryResponse;
+import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.CategoryService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Public Controller pour Catégories
- * Responsabilité: Exposer les catégories au public
- */
 @RestController
 @RequestMapping("/api/public/categories")
 @RequiredArgsConstructor
-@Slf4j
+
 public class PublicCategoryController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PublicCategoryController.class);
     private final CategoryService categoryService;
 
     @GetMapping("/{id}")

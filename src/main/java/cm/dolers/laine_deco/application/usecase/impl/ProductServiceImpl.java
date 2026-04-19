@@ -5,10 +5,9 @@ import cm.dolers.laine_deco.application.mapper.ProductMapper;
 import cm.dolers.laine_deco.application.usecase.ProductService;
 import cm.dolers.laine_deco.domain.exception.ErrorCode;
 import cm.dolers.laine_deco.domain.exception.ProductException;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.ProductEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,8 +17,9 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class ProductServiceImpl implements ProductService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductJpaRepository productRepository;
     private final ProductMapper productMapper;
 
@@ -47,7 +47,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public ProductDetailResponse getProductById(Long productId) {
         var product = productRepository.findById(productId)
-            .orElseThrow(() -> new ProductException(ErrorCode.PRODUCT_NOT_FOUND, "ID: " + productId));
+                .orElseThrow(() -> new ProductException(ErrorCode.PRODUCT_NOT_FOUND, "ID: " + productId));
         return productMapper.toDetailResponse(product);
     }
 
@@ -55,7 +55,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductDetailResponse updateProduct(Long productId, CreateProductRequest request) {
         var product = productRepository.findById(productId)
-            .orElseThrow(() -> new ProductException(ErrorCode.PRODUCT_NOT_FOUND, "ID: " + productId));
+                .orElseThrow(() -> new ProductException(ErrorCode.PRODUCT_NOT_FOUND, "ID: " + productId));
 
         productMapper.updateFromRequest(request, product);
         var updated = productRepository.save(product);
@@ -80,34 +80,34 @@ public class ProductServiceImpl implements ProductService {
             throw new ProductException(ErrorCode.INVALID_REQUEST, "Search keyword cannot be empty");
         }
         return productRepository.findByNameContainingIgnoreCase(keyword)
-            .stream()
-            .map(productMapper::toResponse)
-            .toList();
+                .stream()
+                .map(productMapper::toResponse)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponse> getLowStockProducts() {
         return productRepository.findLowStockProducts()
-            .stream()
-            .map(productMapper::toResponse)
-            .toList();
+                .stream()
+                .map(productMapper::toResponse)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ProductDetailResponse> getProductsByCategory(Long categoryId, Pageable pageable) {
-        return productRepository.findByCategoryIdAndAvailable(categoryId, pageable)
-            .map(productMapper::toDetailResponse);
+        return productRepository.findByCategoryIdAndStockQuantityGreaterThan(categoryId, 0, pageable)
+                .map(productMapper::toDetailResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductDetailResponse> getNewProducts(int limit) {
         return productRepository.findNewProducts(org.springframework.data.domain.PageRequest.of(0, limit))
-            .stream()
-            .map(productMapper::toDetailResponse)
-            .toList();
+                .stream()
+                .map(productMapper::toDetailResponse)
+                .toList();
     }
 
     @Override

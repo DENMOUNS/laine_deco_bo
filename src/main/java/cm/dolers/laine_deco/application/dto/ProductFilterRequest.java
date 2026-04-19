@@ -15,3 +15,4 @@ public record ProductFilterRequest(
     Integer page,
     Integer pageSize
 ) {}
+

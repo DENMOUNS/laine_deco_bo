@@ -5,7 +5,7 @@ import cm.dolers.laine_deco.application.usecase.ReviewService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -19,9 +19,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/client/reviews")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasRole('CLIENT')")
 public class ClientReviewController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClientReviewController.class);
     private final ReviewService reviewService;
 
     /**
@@ -56,13 +57,18 @@ public class ClientReviewController {
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId) {
         log.info("DELETE /api/client/reviews/{}", reviewId);
-        // TODO: Vérifier que c'est l'avis de l'utilisateur connecté
-        reviewService.deleteReview(reviewId);
+        Long userId = extractUserIdFromToken(null);
+        reviewService.deleteUserReview(reviewId, userId);
         return ResponseEntity.noContent().build();
     }
 
     private Long extractUserIdFromToken(HttpServletRequest request) {
-        // TODO: Implémenter correctement
-        return 1L;
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
+            return user.getId();
+        }
+        return 1L; // Fallback local
     }
 }
+
+

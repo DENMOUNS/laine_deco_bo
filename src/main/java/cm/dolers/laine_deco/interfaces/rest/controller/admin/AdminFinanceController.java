@@ -4,7 +4,7 @@ import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.FinanceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -22,9 +22,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/finances")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
 public class AdminFinanceController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminFinanceController.class);
     private final FinanceService financeService;
 
     @PostMapping("/expenses")

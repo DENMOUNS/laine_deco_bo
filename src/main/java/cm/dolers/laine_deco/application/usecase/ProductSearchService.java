@@ -51,3 +51,4 @@ public interface ProductSearchService {
      */
     Page<ProductResponse> getInStockProducts(int page, int pageSize);
 }
+

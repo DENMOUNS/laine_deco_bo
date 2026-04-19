@@ -1,6 +1,8 @@
 package cm.dolers.laine_deco.infrastructure.config;
 
 import cm.dolers.laine_deco.infrastructure.security.AuthTokenFilter;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -17,16 +19,36 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, AuthTokenFilter authTokenFilter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/actuator/health", "/h2-console/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/finance/**").hasAnyRole("FINANCE", "ADMIN")
-                        .requestMatchers("/api/client/**").hasRole("CLIENT")
-                        .anyRequest().authenticated())
-                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
-        http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+    .cors(Customizer.withDefaults())
+    .sessionManagement(session -> session
+        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    .exceptionHandling(ex -> ex
+        .authenticationEntryPoint((request, response, authException) -> {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        })
+    )
+    .authorizeHttpRequests(auth -> auth
+        .dispatcherTypeMatchers(
+            jakarta.servlet.DispatcherType.ERROR
+        ).permitAll()
+        .requestMatchers(
+            "/api/auth/**",
+            "/actuator/health",
+            "/h2-console/**",
+            "/admin/errors",
+            "/admin/errors/**",
+            "/error",
+            "/error/**",
+            "/favicon.ico",
+            "/css/**",
+            "/js/**",
+            "/images/**"
+        ).permitAll()
+        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+        .requestMatchers("/api/finance/**").hasAnyRole("FINANCE", "ADMIN")
+        .requestMatchers("/api/client/**").hasRole("CLIENT")
+        .anyRequest().authenticated())
+    .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

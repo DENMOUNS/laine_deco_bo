@@ -4,7 +4,7 @@ import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.NotificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +18,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/notifications")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminNotificationController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminNotificationController.class);
     private final NotificationService notificationService;
 
     @PostMapping("/system-broadcast")
@@ -31,7 +32,8 @@ public class AdminNotificationController {
     }
 
     @PostMapping("/order-status-change")
-    public ResponseEntity<Void> notifyOrderStatusChange(@Valid @RequestBody OrderStatusChangeNotificationRequest request) {
+    public ResponseEntity<Void> notifyOrderStatusChange(
+            @Valid @RequestBody OrderStatusChangeNotificationRequest request) {
         log.info("POST /api/admin/notifications/order-status-change - Order: {}", request.orderId());
         notificationService.notifyOrderStatusChange(request);
         return ResponseEntity.ok().build();
@@ -113,7 +115,5 @@ public class AdminNotificationController {
         log.info("DELETE /api/admin/notifications/{}", notificationId);
         notificationService.deleteNotification(notificationId);
         return ResponseEntity.noContent().build();
-    }
-}
     }
 }

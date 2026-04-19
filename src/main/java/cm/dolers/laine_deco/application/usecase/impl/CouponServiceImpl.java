@@ -8,7 +8,7 @@ import cm.dolers.laine_deco.domain.exception.ValidationException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.CouponEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.CouponJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,8 +18,9 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class CouponServiceImpl implements CouponService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CouponServiceImpl.class);
     private final CouponJpaRepository couponRepository;
     private final CouponMapper couponMapper;
 
@@ -35,7 +36,7 @@ public class CouponServiceImpl implements CouponService {
         try {
             var coupon = new CouponEntity();
             coupon.setCode(request.code());
-            coupon.setType(cm.dolers.laine_deco.domain.model.CouponType.valueOf(request.type()));
+            coupon.setType(request.type());
             coupon.setDescription(request.description());
             coupon.setDiscountAmount(request.discountAmount());
             coupon.setDiscountPercentage(request.discountPercentage());
@@ -58,7 +59,7 @@ public class CouponServiceImpl implements CouponService {
     @Transactional(readOnly = true)
     public CouponResponse getCouponById(Long couponId) {
         var coupon = couponRepository.findById(couponId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "ID: " + couponId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "ID: " + couponId));
         return couponMapper.toResponse(coupon);
     }
 
@@ -66,7 +67,7 @@ public class CouponServiceImpl implements CouponService {
     @Transactional(readOnly = true)
     public CouponResponse getCouponByCode(String code) {
         var coupon = couponRepository.findByCode(code)
-            .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "Code: " + code));
+                .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "Code: " + code));
         return couponMapper.toResponse(coupon);
     }
 
@@ -74,24 +75,24 @@ public class CouponServiceImpl implements CouponService {
     @Transactional(readOnly = true)
     public Page<CouponResponse> getAllCoupons(Pageable pageable) {
         return couponRepository.findAll(pageable)
-            .map(couponMapper::toResponse);
+                .map(couponMapper::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<CouponResponse> getActiveCoupons(Pageable pageable) {
         return couponRepository.findByIsActiveTrueAndExpiryDateAfter(Instant.now(), pageable)
-            .map(couponMapper::toResponse);
+                .map(couponMapper::toResponse);
     }
 
     @Override
     @Transactional
     public CouponResponse updateCoupon(Long couponId, CreateCouponRequest request) {
         var coupon = couponRepository.findById(couponId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "ID: " + couponId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "ID: " + couponId));
 
         coupon.setCode(request.code());
-        coupon.setType(cm.dolers.laine_deco.domain.model.CouponType.valueOf(request.type()));
+        coupon.setType(request.type());
         coupon.setDescription(request.description());
         coupon.setDiscountAmount(request.discountAmount());
         coupon.setDiscountPercentage(request.discountPercentage());
@@ -118,7 +119,7 @@ public class CouponServiceImpl implements CouponService {
     @Transactional
     public void deactivateCoupon(Long couponId) {
         var coupon = couponRepository.findById(couponId)
-            .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "ID: " + couponId));
+                .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "ID: " + couponId));
         coupon.setIsActive(false);
         couponRepository.save(coupon);
         log.info("Coupon deactivated: {}", couponId);
@@ -128,7 +129,7 @@ public class CouponServiceImpl implements CouponService {
     @Transactional(readOnly = true)
     public void validateCoupon(String code) {
         var coupon = couponRepository.findByCode(code)
-            .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "Code: " + code));
+                .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "Code: " + code));
 
         if (!coupon.getIsActive()) {
             throw new ValidationException(ErrorCode.COUPON_INACTIVE, "Coupon is inactive");
@@ -147,7 +148,7 @@ public class CouponServiceImpl implements CouponService {
     @Transactional
     public void incrementUsage(String code) {
         var coupon = couponRepository.findByCode(code)
-            .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "Code: " + code));
+                .orElseThrow(() -> new ValidationException(ErrorCode.COUPON_NOT_FOUND, "Code: " + code));
         coupon.setUsageCount(coupon.getUsageCount() + 1);
         couponRepository.save(coupon);
         log.info("Coupon usage incremented: {}", code);

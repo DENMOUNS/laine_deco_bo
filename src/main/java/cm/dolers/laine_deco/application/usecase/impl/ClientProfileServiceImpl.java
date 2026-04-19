@@ -9,14 +9,16 @@ import cm.dolers.laine_deco.infrastructure.persistence.entity.ClientProfileEntit
 import cm.dolers.laine_deco.infrastructure.persistence.repository.ClientProfileJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class ClientProfileServiceImpl implements ClientProfileService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
+            .getLogger(cm.dolers.laine_deco.application.usecase.impl.ClientProfileServiceImpl.class);
     private final ClientProfileJpaRepository profileRepository;
     private final UserJpaRepository userRepository;
     private final ClientProfileMapper profileMapper;
@@ -25,25 +27,26 @@ public class ClientProfileServiceImpl implements ClientProfileService {
     @Transactional(readOnly = true)
     public ClientProfileResponse getClientProfile(Long userId) {
         return profileRepository.findByUserId(userId)
-            .map(profileMapper::toResponse)
-            .orElseThrow(() -> {
-                log.warn("Client profile not found for user: {}", userId);
-                return new UserException(ErrorCode.USER_PROFILE_UPDATE_FAILED, "Profile not found for user: " + userId);
-            });
+                .map(profileMapper::toResponse)
+                .orElseThrow(() -> {
+                    log.warn("Client profile not found for user: {}", userId);
+                    return new UserException(ErrorCode.USER_PROFILE_UPDATE_FAILED,
+                            "Profile not found for user: " + userId);
+                });
     }
 
     @Override
     @Transactional
     public ClientProfileResponse createOrUpdateProfile(Long userId, CreateClientProfileRequest request) {
         var user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "ID: " + userId));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "ID: " + userId));
 
         var profile = profileRepository.findByUserId(userId)
-            .orElseGet(() -> {
-                var newProfile = new ClientProfileEntity();
-                newProfile.setUser(user);
-                return newProfile;
-            });
+                .orElseGet(() -> {
+                    var newProfile = new ClientProfileEntity();
+                    newProfile.setUser(user);
+                    return newProfile;
+                });
 
         profile.setPhone(request.phone());
         profile.setAddress(request.address());
@@ -61,9 +64,9 @@ public class ClientProfileServiceImpl implements ClientProfileService {
     @Transactional
     public void deleteClientProfile(Long userId) {
         profileRepository.findByUserId(userId)
-            .ifPresent(profile -> {
-                profileRepository.delete(profile);
-                log.info("Client profile deleted for user: {}", userId);
-            });
+                .ifPresent(profile -> {
+                    profileRepository.delete(profile);
+                    log.info("Client profile deleted for user: {}", userId);
+                });
     }
 }

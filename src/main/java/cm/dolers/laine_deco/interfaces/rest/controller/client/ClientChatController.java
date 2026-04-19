@@ -3,9 +3,8 @@ package cm.dolers.laine_deco.interfaces.rest.controller.client;
 import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.ChatService;
 import jakarta.validation.Valid;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -20,9 +19,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/client/chat")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasRole('CLIENT')")
 public class ClientChatController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClientChatController.class);
     private final ChatService chatService;
 
     @PostMapping("/conversations")
@@ -59,13 +59,12 @@ public class ClientChatController {
     public ResponseEntity<ChatMessageResponse> sendMessage(@PathVariable Long id,
             @Valid @RequestBody CreateChatMessageRequest request) {
         log.info("POST /api/client/chat/conversations/{}/messages", id);
-        
+
         var modifiedRequest = new CreateChatMessageRequest(
-            id,
-            request.message(),
-            "USER"
-        );
-        
+                id,
+                request.message(),
+                "USER");
+
         var response = chatService.sendMessage(modifiedRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -99,8 +98,11 @@ public class ClientChatController {
     }
 
     private Long extractUserIdFromToken() {
-        // TODO: Extraire correctement du token JWT
-        return 1L;
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
+            return user.getId();
+        }
+        return 1L; // Fallback local
     }
 }
 

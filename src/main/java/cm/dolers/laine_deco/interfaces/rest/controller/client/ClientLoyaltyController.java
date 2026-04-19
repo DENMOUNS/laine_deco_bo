@@ -10,7 +10,7 @@ import cm.dolers.laine_deco.infrastructure.config.PaginationConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,9 +27,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/client/loyalty")
 @RequiredArgsConstructor
-@Slf4j
+
 @PreAuthorize("hasRole('CLIENT')")
 public class ClientLoyaltyController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClientLoyaltyController.class);
     private final LoyaltyService loyaltyService;
     private final BadgeService badgeService;
 
@@ -53,23 +54,22 @@ public class ClientLoyaltyController {
             @RequestParam(defaultValue = "10") int pageSize,
             HttpServletRequest request) {
         Long userId = extractUserIdFromToken(request);
-        
+
         int normalizedSize = PaginationConstants.normalizePageSize(pageSize);
         log.info("GET /api/client/loyalty/badges - User: {}, page: {}, size: {}", userId, page, normalizedSize);
-        
+
         List<UserBadgeResponse> badges = badgeService.getUserBadges(userId);
-        
+
         // Appliquer la pagination manuellement
         int start = page * normalizedSize;
         int end = Math.min(start + normalizedSize, badges.size());
         List<UserBadgeResponse> pageContent = badges.subList(start, end);
-        
+
         Page<UserBadgeResponse> pageResult = new PageImpl<>(
-            pageContent,
-            org.springframework.data.domain.PageRequest.of(page, normalizedSize),
-            badges.size()
-        );
-        
+                pageContent,
+                org.springframework.data.domain.PageRequest.of(page, normalizedSize),
+                badges.size());
+
         return ResponseEntity.ok(pageResult);
     }
 
@@ -126,7 +126,11 @@ public class ClientLoyaltyController {
     }
 
     private Long extractUserIdFromToken(HttpServletRequest request) {
-        // TODO: Implémenter correctement l'extraction du token JWT
-        return 1L;
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
+            return user.getId();
+        }
+        return 1L; // Fallback local
     }
 }
+

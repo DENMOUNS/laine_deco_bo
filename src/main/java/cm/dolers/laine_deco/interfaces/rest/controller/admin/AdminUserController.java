@@ -4,8 +4,6 @@ import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +14,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
-@Slf4j
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminUserController.class);
     private final UserService userService;
 
     @GetMapping("/{id}")
@@ -60,3 +58,4 @@ public class AdminUserController {
         return ResponseEntity.ok().build();
     }
 }
+

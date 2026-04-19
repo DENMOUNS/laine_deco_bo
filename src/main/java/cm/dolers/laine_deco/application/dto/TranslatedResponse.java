@@ -12,3 +12,4 @@ public record TranslatedResponse<T>(
     String language,              // Langue actuelle (fr, en)
     Long timestamp
 ) {}
+

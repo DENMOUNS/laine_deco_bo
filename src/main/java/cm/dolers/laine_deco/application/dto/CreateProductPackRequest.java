@@ -1,27 +1,25 @@
 package cm.dolers.laine_deco.application.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateProductPackRequest {
-    private String name;
-    private String description;
-    private Long price;
-    private Long salePrice;
-    private byte[] image;
-    private List<PackProductItem> items;
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class PackProductItem {
-        private Long productId;
-        private Integer quantity;
-    }
+public record CreateProductPackRequest(
+    String name,
+    String description,
+    java.math.BigDecimal price,
+    java.math.BigDecimal salePrice,
+    String image,
+    Boolean isActive,
+    String startDate,
+    String endDate,
+    String brand,
+    java.util.List<ProductPackItemDto> items
+) {
+    public String getName() { return name; }
+    public String getDescription() { return description; }
+    public java.math.BigDecimal getPrice() { return price; }
+    public java.math.BigDecimal getSalePrice() { return salePrice; }
+    public String getImage() { return image; }
+    public Boolean getIsActive() { return isActive; }
+    public String getStartDate() { return startDate; }
+    public String getEndDate() { return endDate; }
+    public String getBrand() { return brand; }
+    public java.util.List<ProductPackItemDto> getItems() { return items; }
 }

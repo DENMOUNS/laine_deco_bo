@@ -9,7 +9,7 @@ import cm.dolers.laine_deco.domain.model.ExpenseStatus;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.ExpenseEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.ExpenseJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,8 +23,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+
 public class FinanceServiceImpl implements FinanceService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FinanceServiceImpl.class);
     private final ExpenseJpaRepository expenseRepository;
     private final ExpenseMapper expenseMapper;
 
@@ -53,7 +54,7 @@ public class FinanceServiceImpl implements FinanceService {
     @Transactional(readOnly = true)
     public ExpenseResponse getExpenseById(Long expenseId) {
         var expense = expenseRepository.findById(expenseId)
-            .orElseThrow(() -> new ExpenseException(ErrorCode.EXPENSE_NOT_FOUND, "ID: " + expenseId));
+                .orElseThrow(() -> new ExpenseException(ErrorCode.EXPENSE_NOT_FOUND, "ID: " + expenseId));
         return expenseMapper.toResponse(expense);
     }
 
@@ -61,7 +62,7 @@ public class FinanceServiceImpl implements FinanceService {
     @Transactional(readOnly = true)
     public Page<ExpenseResponse> getAllExpenses(Pageable pageable) {
         return expenseRepository.findAll(pageable)
-            .map(expenseMapper::toResponse);
+                .map(expenseMapper::toResponse);
     }
 
     @Override
@@ -70,7 +71,7 @@ public class FinanceServiceImpl implements FinanceService {
         try {
             var expenseStatus = ExpenseStatus.valueOf(status.toUpperCase());
             return expenseRepository.findByStatus(expenseStatus, pageable)
-                .map(expenseMapper::toResponse);
+                    .map(expenseMapper::toResponse);
         } catch (IllegalArgumentException ex) {
             throw new ExpenseException(ErrorCode.INVALID_REQUEST, "Invalid status: " + status);
         }
@@ -82,7 +83,7 @@ public class FinanceServiceImpl implements FinanceService {
         try {
             var expenseCategory = cm.dolers.laine_deco.domain.model.ExpenseCategory.valueOf(category.toUpperCase());
             return expenseRepository.findByCategory(expenseCategory, pageable)
-                .map(expenseMapper::toResponse);
+                    .map(expenseMapper::toResponse);
         } catch (IllegalArgumentException ex) {
             throw new ExpenseException(ErrorCode.INVALID_REQUEST, "Invalid category: " + category);
         }
@@ -92,16 +93,16 @@ public class FinanceServiceImpl implements FinanceService {
     @Transactional(readOnly = true)
     public List<ExpenseResponse> getExpensesByDateRange(LocalDate startDate, LocalDate endDate) {
         return expenseRepository.findByOperationDateBetween(startDate, endDate)
-            .stream()
-            .map(expenseMapper::toResponse)
-            .collect(Collectors.toList());
+                .stream()
+                .map(expenseMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public ExpenseResponse updateExpense(Long expenseId, CreateExpenseRequest request) {
         var expense = expenseRepository.findById(expenseId)
-            .orElseThrow(() -> new ExpenseException(ErrorCode.EXPENSE_NOT_FOUND, "ID: " + expenseId));
+                .orElseThrow(() -> new ExpenseException(ErrorCode.EXPENSE_NOT_FOUND, "ID: " + expenseId));
 
         expenseMapper.updateFromRequest(request, expense);
         var updated = expenseRepository.save(expense);
@@ -123,19 +124,19 @@ public class FinanceServiceImpl implements FinanceService {
     @Transactional(readOnly = true)
     public ExpenseSummaryResponse getExpenseSummary(LocalDate startDate, LocalDate endDate) {
         var expenses = getExpensesByDateRange(startDate, endDate);
-        
-        BigDecimal total = expenses.stream()
-            .map(ExpenseResponse::amount)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal average = expenses.isEmpty() 
-            ? BigDecimal.ZERO 
-            : total.divide(BigDecimal.valueOf(expenses.size()), 2, RoundingMode.HALF_UP);
+        BigDecimal total = expenses.stream()
+                .map(ExpenseResponse::amount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal average = expenses.isEmpty()
+                ? BigDecimal.ZERO
+                : total.divide(BigDecimal.valueOf(expenses.size()), 2, RoundingMode.HALF_UP);
 
         BigDecimal highest = expenses.stream()
-            .map(ExpenseResponse::amount)
-            .max(BigDecimal::compareTo)
-            .orElse(BigDecimal.ZERO);
+                .map(ExpenseResponse::amount)
+                .max(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO);
 
         return new ExpenseSummaryResponse(total, average, highest, expenses.size(), startDate, endDate);
     }
@@ -145,48 +146,47 @@ public class FinanceServiceImpl implements FinanceService {
     public List<ExpenseByCategoryResponse> getExpensesByCategory(LocalDate startDate, LocalDate endDate) {
         var expenses = getExpensesByDateRange(startDate, endDate);
         BigDecimal total = expenses.stream()
-            .map(ExpenseResponse::amount)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(ExpenseResponse::amount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return expenses.stream()
-            .collect(Collectors.groupingBy(ExpenseResponse::category))
-            .entrySet().stream()
-            .map(entry -> {
-                BigDecimal categoryTotal = entry.getValue().stream()
-                    .map(ExpenseResponse::amount)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .collect(Collectors.groupingBy(ExpenseResponse::category))
+                .entrySet().stream()
+                .map(entry -> {
+                    BigDecimal categoryTotal = entry.getValue().stream()
+                            .map(ExpenseResponse::amount)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-                double percentage = total.compareTo(BigDecimal.ZERO) > 0
-                    ? categoryTotal.divide(total, 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).doubleValue()
-                    : 0;
+                    double percentage = total.compareTo(BigDecimal.ZERO) > 0
+                            ? categoryTotal.divide(total, 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100))
+                                    .doubleValue()
+                            : 0;
 
-                return new ExpenseByCategoryResponse(
-                    entry.getKey().toString(),
-                    categoryTotal,
-                    entry.getValue().size(),
-                    percentage
-                );
-            })
-            .collect(Collectors.toList());
+                    return new ExpenseByCategoryResponse(
+                            entry.getKey().toString(),
+                            categoryTotal,
+                            entry.getValue().size(),
+                            percentage);
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ExpenseBySupplierResponse> getExpensesBySupplier(LocalDate startDate, LocalDate endDate) {
         return expenseRepository.findByOperationDateBetween(startDate, endDate).stream()
-            .collect(Collectors.groupingBy(ExpenseEntity::getSupplierName))
-            .entrySet().stream()
-            .map(entry -> new ExpenseBySupplierResponse(
-                entry.getKey(),
-                entry.getValue().stream()
-                    .map(ExpenseEntity::getAmount)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add),
-                entry.getValue().size(),
-                entry.getValue().stream()
-                    .map(ExpenseEntity::getOperationDate)
-                    .max(LocalDate::compareTo)
-                    .orElse(null)
-            ))
-            .collect(Collectors.toList());
+                .collect(Collectors.groupingBy(ExpenseEntity::getSupplierName))
+                .entrySet().stream()
+                .map(entry -> new ExpenseBySupplierResponse(
+                        entry.getKey(),
+                        entry.getValue().stream()
+                                .map(ExpenseEntity::getAmount)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add),
+                        entry.getValue().size(),
+                        entry.getValue().stream()
+                                .map(ExpenseEntity::getOperationDate)
+                                .max(LocalDate::compareTo)
+                                .orElse(null)))
+                .collect(Collectors.toList());
     }
 }

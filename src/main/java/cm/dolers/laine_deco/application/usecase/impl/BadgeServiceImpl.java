@@ -1,18 +1,18 @@
 package cm.dolers.laine_deco.application.usecase.impl;
 
-import cm.dolers.laine_deco.application.dto.UserBadgeResponse;
+import cm.dolers.laine_deco.application.dto.*;
+
 import cm.dolers.laine_deco.application.mapper.LoyaltyMapper;
 import cm.dolers.laine_deco.application.usecase.BadgeService;
 import cm.dolers.laine_deco.domain.exception.ErrorCode;
 import cm.dolers.laine_deco.domain.exception.ValidationException;
 import cm.dolers.laine_deco.domain.model.BadgeType;
 import cm.dolers.laine_deco.domain.model.LoyaltyTier;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.UserBadge;
-import cm.dolers.laine_deco.infrastructure.persistence.repository.UserBadgeRepository;
+import cm.dolers.laine_deco.infrastructure.persistence.entity.UserBadgeEntity;
+import cm.dolers.laine_deco.infrastructure.persistence.repository.UserBadgeJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.UserJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.UserLoyaltyProfileRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,9 +24,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class BadgeServiceImpl implements BadgeService {
-    private final UserBadgeRepository badgeRepository;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BadgeServiceImpl.class);
+    private final UserBadgeJpaRepository badgeRepository;
     private final UserJpaRepository userRepository;
     private final UserLoyaltyProfileRepository loyaltyRepository;
     private final LoyaltyMapper loyaltyMapper;
@@ -46,7 +46,7 @@ public class BadgeServiceImpl implements BadgeService {
         }
 
         // Créer le badge
-        var badge = new UserBadge();
+        var badge = new UserBadgeEntity();
         badge.setUser(user);
         badge.setBadgeType(badgeType);
         badge.setEarnedAt(Instant.now());
@@ -134,6 +134,36 @@ public class BadgeServiceImpl implements BadgeService {
         } catch (Exception ex) {
             log.error("Error awarding automatic badges for user: {}", userId, ex);
         }
+    }
+
+
+    @Override
+    @Transactional
+    public BadgeResponse createBadge(CreateBadgeRequest request) {
+        return null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BadgeResponse getBadgeById(Long badgeId) {
+        return null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BadgeResponse> getAllBadges(Pageable pageable) {
+        return Page.empty();
+    }
+
+    @Override
+    @Transactional
+    public void awardBadgeToUser(Long userId, Long badgeId) {
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserBadgeResponse> getRecentBadges(Long userId, int limit) {
+        return List.of();
     }
 }
 

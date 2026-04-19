@@ -1,10 +1,10 @@
 package cm.dolers.laine_deco.interfaces.rest.controller.admin;
 
+
 import cm.dolers.laine_deco.application.dto.ProductSearchCriteria;
 import cm.dolers.laine_deco.application.dto.ProductResponse;
 import cm.dolers.laine_deco.application.usecase.ProductSearchService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,11 +16,11 @@ import java.math.BigDecimal;
  * Admin Controller pour la recherche et analyse des produits
  */
 @RestController
-@RequestMapping("/api/admin/products/search")
+@RequestMapping("/api/admin/products/advanced-search")
 @RequiredArgsConstructor
-@Slf4j
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminProductSearchController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminProductSearchController.class);
     private final ProductSearchService productSearchService;
 
     /**
@@ -38,7 +38,7 @@ public class AdminProductSearchController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int pageSize) {
 
-        log.info("ADMIN GET /api/admin/products/search - keyword: {}, category: {}", keyword, categoryId);
+        log.info("ADMIN GET /api/admin/products/advanced-search - keyword: {}, category: {}", keyword, categoryId);
 
         var criteria = new ProductSearchCriteria(
             keyword, categoryId, minPrice, maxPrice, minRating, inStock, sortBy, page, pageSize
@@ -55,7 +55,7 @@ public class AdminProductSearchController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int pageSize) {
 
-        log.info("ADMIN GET /api/admin/products/search/analytics/popular");
+        log.info("ADMIN GET /api/admin/products/advanced-search/analytics/popular");
 
         return ResponseEntity.ok(productSearchService.getPopularProducts(page, pageSize));
     }
@@ -68,7 +68,7 @@ public class AdminProductSearchController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int pageSize) {
 
-        log.info("ADMIN GET /api/admin/products/search/analytics/low-performers");
+        log.info("ADMIN GET /api/admin/products/advanced-search/analytics/low-performers");
 
         // Recherche produits non populaires (0-100 viewCount)
         var criteria = new ProductSearchCriteria(
@@ -87,8 +87,10 @@ public class AdminProductSearchController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int pageSize) {
 
-        log.info("ADMIN GET /api/admin/products/search/analytics/top-rated");
+        log.info("ADMIN GET /api/admin/products/advanced-search/analytics/top-rated");
 
         return ResponseEntity.ok(productSearchService.getTopRatedProducts(minRating, page, pageSize));
     }
 }
+
+

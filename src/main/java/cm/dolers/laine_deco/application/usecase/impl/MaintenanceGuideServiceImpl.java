@@ -1,8 +1,8 @@
 package cm.dolers.laine_deco.application.usecase.impl;
 
 import cm.dolers.laine_deco.infrastructure.persistence.repository.MaintenanceGuideRepository;
-import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductRepository;
-import cm.dolers.laine_deco.infrastructure.persistence.repository.CategoryRepository;
+import cm.dolers.laine_deco.infrastructure.persistence.repository.ProductJpaRepository;
+import cm.dolers.laine_deco.infrastructure.persistence.repository.CategoryJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.MaintenanceGuideEntity;
 import cm.dolers.laine_deco.application.dto.CreateMaintenanceGuideRequest;
 import cm.dolers.laine_deco.application.dto.MaintenanceGuideResponse;
@@ -20,8 +20,8 @@ import java.util.List;
 @Transactional
 public class MaintenanceGuideServiceImpl implements MaintenanceGuideService {
     private final MaintenanceGuideRepository repository;
-    private final ProductRepository productRepository;
-    private final CategoryRepository categoryRepository;
+    private final ProductJpaRepository ProductJpaRepository;
+    private final CategoryJpaRepository CategoryJpaRepository;
     private final MaintenanceGuideMapper mapper;
 
     @Override
@@ -34,19 +34,19 @@ public class MaintenanceGuideServiceImpl implements MaintenanceGuideService {
         guide.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
         guide.setCreatedAt(Instant.now());
         guide.setUpdatedAt(Instant.now());
-        
+
         if (request.getCategoryId() != null) {
-            guide.setCategory(categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("Category not found")));
+            guide.setCategory(CategoryJpaRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new IllegalArgumentException("Category not found")));
         }
         if (request.getBrand() != null) {
             guide.setBrand(request.getBrand());
         }
         if (request.getProductId() != null) {
-            guide.setProduct(productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new IllegalArgumentException("Product not found")));
+            guide.setProduct(ProductJpaRepository.findById(request.getProductId())
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found")));
         }
-        
+
         MaintenanceGuideEntity saved = repository.save(guide);
         return mapper.toResponse(saved);
     }
@@ -54,35 +54,35 @@ public class MaintenanceGuideServiceImpl implements MaintenanceGuideService {
     @Override
     public MaintenanceGuideResponse updateGuide(Long guideId, CreateMaintenanceGuideRequest request) {
         MaintenanceGuideEntity guide = repository.findById(guideId)
-            .orElseThrow(() -> new IllegalArgumentException("Guide not found: " + guideId));
-        
+                .orElseThrow(() -> new IllegalArgumentException("Guide not found: " + guideId));
+
         guide.setTitle(request.getTitle());
         guide.setContent(request.getContent());
         guide.setInstructions(request.getInstructions());
         guide.setImage(request.getImage());
         guide.setIsActive(request.getIsActive());
         guide.setUpdatedAt(Instant.now());
-        
+
         if (request.getCategoryId() != null) {
-            guide.setCategory(categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("Category not found")));
+            guide.setCategory(CategoryJpaRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new IllegalArgumentException("Category not found")));
         } else {
             guide.setCategory(null);
         }
-        
+
         if (request.getBrand() != null) {
             guide.setBrand(request.getBrand());
         } else {
             guide.setBrand(null);
         }
-        
+
         if (request.getProductId() != null) {
-            guide.setProduct(productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new IllegalArgumentException("Product not found")));
+            guide.setProduct(ProductJpaRepository.findById(request.getProductId())
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found")));
         } else {
             guide.setProduct(null);
         }
-        
+
         MaintenanceGuideEntity updated = repository.save(guide);
         return mapper.toResponse(updated);
     }
@@ -91,7 +91,7 @@ public class MaintenanceGuideServiceImpl implements MaintenanceGuideService {
     @Transactional(readOnly = true)
     public MaintenanceGuideResponse getGuideById(Long guideId) {
         MaintenanceGuideEntity guide = repository.findById(guideId)
-            .orElseThrow(() -> new IllegalArgumentException("Guide not found: " + guideId));
+                .orElseThrow(() -> new IllegalArgumentException("Guide not found: " + guideId));
         return mapper.toResponse(guide);
     }
 
@@ -128,7 +128,7 @@ public class MaintenanceGuideServiceImpl implements MaintenanceGuideService {
     @Override
     public void activateGuide(Long guideId) {
         MaintenanceGuideEntity guide = repository.findById(guideId)
-            .orElseThrow(() -> new IllegalArgumentException("Guide not found: " + guideId));
+                .orElseThrow(() -> new IllegalArgumentException("Guide not found: " + guideId));
         guide.setIsActive(true);
         guide.setUpdatedAt(Instant.now());
         repository.save(guide);
@@ -137,7 +137,7 @@ public class MaintenanceGuideServiceImpl implements MaintenanceGuideService {
     @Override
     public void deactivateGuide(Long guideId) {
         MaintenanceGuideEntity guide = repository.findById(guideId)
-            .orElseThrow(() -> new IllegalArgumentException("Guide not found: " + guideId));
+                .orElseThrow(() -> new IllegalArgumentException("Guide not found: " + guideId));
         guide.setIsActive(false);
         guide.setUpdatedAt(Instant.now());
         repository.save(guide);
