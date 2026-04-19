@@ -5,20 +5,25 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/errors")
+@RequestMapping("/admin/errors")
 public class ErrorLogController {
 
-    private final ErrorLogStore store;
+    private final LogStore store;
 
-    public ErrorLogController(ErrorLogStore store) {
+    public ErrorLogController(LogStore store) {
         this.store = store;
     }
 
     @GetMapping
     public String dashboard(Model model) {
-        model.addAttribute("errors", store.getAll());
-        model.addAttribute("totalErrors", store.countByLevel("ERROR"));
-        model.addAttribute("totalWarns",  store.countByLevel("WARN"));
+        model.addAttribute("logs", store.getAll());
+        model.addAttribute("totalErrors",   store.countByLevel("ERROR"));
+        model.addAttribute("totalWarns",    store.countByLevel("WARN"));
+        model.addAttribute("totalInfos",    store.countByCategory("INFO"));
+        model.addAttribute("totalSql",      store.countByCategory("SQL"));
+        model.addAttribute("totalSecurity", store.countByCategory("SECURITY"));
+        model.addAttribute("totalHttp",     store.countByCategory("HTTP"));
+        model.addAttribute("totalDebug",    store.countByCategory("DEBUG"));
         return "admin/errors";
     }
 

@@ -5,11 +5,25 @@
         </encoder>
     </appender>
 
-    <appender name="ERROR_STORE"
-              class="cm.dolers.laine_deco.infrastructure.monitoring.ErrorAppender"/>
+    <appender name="LOG_STORE"
+              class="cm.dolers.laine_deco.infrastructure.monitoring.LogAppender"/>
+
+    <!-- Catégories spécifiques -->
+    <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOG_STORE"/>
+    </logger>
+    <logger name="org.springframework.security" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOG_STORE"/>
+    </logger>
+    <logger name="org.springframework.web" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOG_STORE"/>
+    </logger>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="ERROR_STORE"/>
+        <appender-ref ref="LOG_STORE"/>
     </root>
 </configuration>

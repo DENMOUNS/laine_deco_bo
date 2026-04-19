@@ -61,11 +61,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
         String dispatchType = request.getDispatcherType().name();
-    
-    // Ignorer tous les dispatches ERROR
+
         if ("ERROR".equals(dispatchType)) return true;
-        
-        return path.startsWith("/admin/errors")
+
+        return path.startsWith("/admin/errors")  // ← déjà bon
             || path.equals("/error")
             || path.equals("/favicon.ico")
             || path.startsWith("/css/")

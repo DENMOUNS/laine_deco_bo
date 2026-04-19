@@ -1,84 +1,116 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Error Tracker</title>
-    <style>
-        body { font-family: monospace; background: #0f0f0f; color: #e0e0e0; padding: 2rem; }
-        h1   { font-size: 1.4rem; font-weight: 500; margin-bottom: 1.5rem; color: #fff; }
-        .stats { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
-        .stat  { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: .75rem 1.25rem; }
-        .stat-val  { font-size: 1.8rem; font-weight: 500; }
-        .stat-val.red  { color: #e24b4a; }
-        .stat-val.amber{ color: #ef9f27; }
-        .stat-label{ font-size: .75rem; color: #888; }
-        .card { background: #161616; border: 1px solid #2a2a2a; border-radius: 8px; margin-bottom: .75rem; overflow: hidden; }
-        .card-header { display: flex; align-items: flex-start; gap: .75rem; padding: .75rem 1rem; cursor: pointer; }
-        .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
-        .badge.ERROR { background: #3d1515; color: #e24b4a; }
-        .badge.WARN  { background: #3d2b00; color: #ef9f27; }
-        .card-body  { border-top: 1px solid #2a2a2a; padding: .75rem 1rem; display: none; }
-        .card.open .card-body { display: block; }
-        .stack { font-size: 11px; color: #aaa; white-space: pre-wrap; word-break: break-all; }
-        .meta  { font-size: 11px; color: #555; margin-top: .25rem; }
-        .msg   { font-size: 13px; color: #ccc; }
-        .clear-btn { background: #1a1a1a; border: 1px solid #444; color: #ccc; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-        input[type=text] { background: #1a1a1a; border: 1px solid #333; color: #ccc; padding: 6px 12px; border-radius: 6px; font-size: 13px; width: 260px; }
-        .toolbar { display: flex; gap: .75rem; align-items: center; margin-bottom: 1rem; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Log Monitor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', monospace; background: #0d0d0d; color: #e0e0e0; padding: 1.5rem; font-size: 13px; }
+    h1 { font-size: 16px; font-weight: 500; margin-bottom: 1.25rem; color: #fff; }
+
+    .stats { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+    .stat { background: #1a1a1a; border-radius: 6px; padding: 10px 12px; }
+    .stat-val { font-size: 20px; font-weight: 500; }
+    .stat-label { font-size: 10px; color: #666; margin-bottom: 2px; text-transform: uppercase; letter-spacing: .05em; }
+    .c-err  { color: #e24b4a; } .c-warn { color: #ef9f27; }
+    .c-info { color: #378add; } .c-sql  { color: #639922; }
+    .c-sec  { color: #7F77DD; } .c-http { color: #888; }
+    .c-dbg  { color: #D4537E; }
+
+    .toolbar { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+    .toolbar input { flex: 1; min-width: 200px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #ccc; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+    .toolbar select { background: #1a1a1a; border: 1px solid #2a2a2a; color: #ccc; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+    .toolbar button { background: #1a1a1a; border: 1px solid #444; color: #ccc; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .toolbar button:hover { background: #2a2a2a; }
+
+    .log-list { border: 1px solid #1e1e1e; border-radius: 8px; overflow: hidden; }
+    .log-item { border-bottom: 1px solid #1a1a1a; transition: background .1s; }
+    .log-item:last-child { border-bottom: none; }
+    .log-header { display: flex; align-items: flex-start; gap: 8px; padding: 7px 12px; cursor: pointer; }
+    .log-header:hover { background: #141414; }
+    .badge { font-size: 10px; padding: 2px 7px; border-radius: 3px; font-weight: 600; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+    .badge-ERROR    { background: #2d1515; color: #e24b4a; }
+    .badge-WARN     { background: #2d2000; color: #ef9f27; }
+    .badge-INFO     { background: #0d1e2d; color: #378add; }
+    .badge-SQL      { background: #141f0a; color: #639922; }
+    .badge-SECURITY { background: #1a1830; color: #7F77DD; }
+    .badge-HTTP     { background: #1a1a1a; color: #888; }
+    .badge-DEBUG    { background: #2b1020; color: #D4537E; }
+    .log-time { font-size: 11px; color: #444; white-space: nowrap; flex-shrink: 0; }
+    .log-logger { font-size: 11px; color: #555; white-space: nowrap; flex-shrink: 0; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+    .log-msg { font-size: 12px; color: #ccc; flex: 1; word-break: break-all; }
+    .log-body { display: none; padding: 8px 12px 10px 12px; background: #0a0a0a; border-top: 1px solid #1a1a1a; }
+    .log-body.open { display: block; }
+    .log-stack { font-size: 11px; color: #777; white-space: pre-wrap; word-break: break-all; }
+    .log-meta { font-size: 11px; color: #444; margin-top: 4px; }
+    .empty { padding: 2rem; text-align: center; color: #444; }
+  </style>
 </head>
 <body>
-<h1>Error Tracker</h1>
+<h1>Log Monitor</h1>
 
 <div class="stats">
-    <div class="stat">
-        <div class="stat-label">Erreurs</div>
-        <div class="stat-val red" th:text="${totalErrors}">0</div>
-    </div>
-    <div class="stat">
-        <div class="stat-label">Warnings</div>
-        <div class="stat-val amber" th:text="${totalWarns}">0</div>
-    </div>
-    <div class="stat">
-        <div class="stat-label">Total</div>
-        <div class="stat-val" th:text="${errors.size()}">0</div>
-    </div>
+  <div class="stat"><div class="stat-label">Errors</div><div class="stat-val c-err" th:text="${totalErrors}">0</div></div>
+  <div class="stat"><div class="stat-label">Warnings</div><div class="stat-val c-warn" th:text="${totalWarns}">0</div></div>
+  <div class="stat"><div class="stat-label">Info</div><div class="stat-val c-info" th:text="${totalInfos}">0</div></div>
+  <div class="stat"><div class="stat-label">SQL</div><div class="stat-val c-sql" th:text="${totalSql}">0</div></div>
+  <div class="stat"><div class="stat-label">Security</div><div class="stat-val c-sec" th:text="${totalSecurity}">0</div></div>
+  <div class="stat"><div class="stat-label">HTTP</div><div class="stat-val c-http" th:text="${totalHttp}">0</div></div>
+  <div class="stat"><div class="stat-label">Debug</div><div class="stat-val c-dbg" th:text="${totalDebug}">0</div></div>
 </div>
 
 <div class="toolbar">
-    <input type="text" id="search" placeholder="Filtrer..." oninput="filterCards()">
-    <form method="post" action="/admin/errors/clear">
-        <button class="clear-btn" type="submit">Vider</button>
-    </form>
+  <input type="text" id="search" placeholder="Filtrer les logs..." oninput="filter()">
+  <select id="levelFilter" onchange="filter()">
+    <option value="">Tous les niveaux</option>
+    <option value="ERROR">ERROR</option>
+    <option value="WARN">WARN</option>
+    <option value="INFO">INFO</option>
+    <option value="SQL">SQL</option>
+    <option value="SECURITY">SECURITY</option>
+    <option value="HTTP">HTTP</option>
+    <option value="DEBUG">DEBUG</option>
+  </select>
+  <form method="post" action="/admin/errors/clear" style="display:inline">
+    <button type="submit">Vider</button>
+  </form>
+  <button onclick="location.reload()">Rafraîchir</button>
 </div>
 
-<div id="list">
-    <div class="card" th:each="e : ${errors}" th:attr="data-msg=${e.message}">
-        <div class="card-header" onclick="this.parentElement.classList.toggle('open')">
-            <span class="badge" th:classappend="${e.level}" th:text="${e.level}">ERROR</span>
-            <div style="flex:1">
-                <div class="msg" th:text="${e.message}"></div>
-                <div class="meta">
-                    <span th:text="${e.timestamp}"></span> —
-                    <span th:text="${e.loggerName}"></span>
-                    <span th:if="${e.exceptionType}" th:text="'— ' + ${e.exceptionType}"></span>
-                </div>
-            </div>
-            <span style="color:#555;font-size:12px">▶</span>
-        </div>
-        <div class="card-body">
-            <pre class="stack" th:if="${e.stackTrace}" th:text="${e.stackTrace}"></pre>
-            <div class="meta" th:text="'Thread: ' + ${e.threadName}"></div>
-        </div>
+<div class="log-list" id="list">
+  <div th:if="${#lists.isEmpty(logs)}" class="empty">Aucun log enregistré.</div>
+  <div class="log-item"
+       th:each="e : ${logs}"
+       th:attr="data-msg=${e.message},data-cat=${e.category}">
+    <div class="log-header" onclick="toggle(this)">
+      <span class="badge" th:classappend="'badge-' + ${e.category}" th:text="${e.category}">INFO</span>
+      <span class="log-time" th:text="${#temporals.format(e.timestamp,'HH:mm:ss')}"></span>
+      <span class="log-logger" th:text="${#strings.abbreviate(e.loggerName,40)}"></span>
+      <span class="log-msg" th:text="${e.message}"></span>
     </div>
+    <div class="log-body">
+      <div class="log-stack" th:if="${e.stackTrace}" th:text="${e.stackTrace}"></div>
+      <div class="log-meta">
+        Thread: <span th:text="${e.threadName}"></span>
+        &nbsp;|&nbsp; Logger: <span th:text="${e.loggerName}"></span>
+        <span th:if="${e.exceptionType}">&nbsp;|&nbsp; Exception: <span th:text="${e.exceptionType}"></span></span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-function filterCards() {
-    const q = document.getElementById('search').value.toLowerCase();
-    document.querySelectorAll('#list .card').forEach(c => {
-        c.style.display = c.dataset.msg.toLowerCase().includes(q) ? '' : 'none';
-    });
+function toggle(header) {
+  header.nextElementSibling.classList.toggle('open');
+}
+function filter() {
+  const q   = document.getElementById('search').value.toLowerCase();
+  const cat = document.getElementById('levelFilter').value;
+  document.querySelectorAll('#list .log-item').forEach(item => {
+    const msgMatch = item.dataset.msg.toLowerCase().includes(q);
+    const catMatch = !cat || item.dataset.cat === cat;
+    item.style.display = (msgMatch && catMatch) ? '' : 'none';
+  });
 }
 </script>
 </body>
