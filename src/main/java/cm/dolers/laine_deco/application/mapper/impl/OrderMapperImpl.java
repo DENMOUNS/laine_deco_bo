@@ -15,7 +15,6 @@ public class OrderMapperImpl implements OrderMapper {
             .map(this::toDetailResponse)
             .toList();
 
-        // CrÃ©er le DTO pour les infos de livraison
         DeliveryInfoResponse deliveryInfo = new DeliveryInfoResponse(
             order.getDeliveryFirstName(),
             order.getDeliveryLastName(),
@@ -27,18 +26,18 @@ public class OrderMapperImpl implements OrderMapper {
             order.getDeliveryLongitude()
         );
 
-        // CrÃ©er le DTO pour le coupon appliquÃ©
         CouponAppliedResponse couponApplied = order.getCouponCode() != null
             ? new CouponAppliedResponse(
                 order.getCouponCode(),
                 order.getCouponType(),
                 order.getDiscountAmount(),
-                null // On n'a pas la description stockÃ©e dans OrderEntity
+                null
             )
             : null;
 
         return new OrderResponse(
             order.getId(),
+            // CORRECTION : user peut être null pour les commandes guest
             order.getUser() != null ? order.getUser().getId() : null,
             details,
             deliveryInfo,
@@ -64,7 +63,7 @@ public class OrderMapperImpl implements OrderMapper {
             detail.getProduct().getId(),
             detail.getProduct().getName(),
             detail.getQuantity(),
-            detail.getPrice(),  // unitPrice
+            detail.getPrice(),
             detail.getPrice().multiply(java.math.BigDecimal.valueOf(detail.getQuantity()))
         );
     }

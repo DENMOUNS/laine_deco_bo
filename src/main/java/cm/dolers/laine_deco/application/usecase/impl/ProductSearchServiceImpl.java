@@ -121,7 +121,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
             return List.of();
         }
 
-        return ProductJpaRepository.findProductNameSuggestions(prefix);
+        Pageable pageable = PageRequest.of(0, 10);
+        return ProductJpaRepository.findProductNameSuggestions(prefix, pageable);
     }
 
     @Override

@@ -41,8 +41,8 @@ public interface ProductJpaRepository extends JpaRepository<ProductEntity, Long>
     Page<ProductEntity> findNewestProducts(Pageable pageable);
 
     // Auto-complétion (pour les suggestions de recherche)
-    @Query(value = "SELECT DISTINCT p.name FROM ProductEntity p WHERE LOWER(p.name) LIKE LOWER(CONCAT(:prefix, '%')) LIMIT 10", nativeQuery = false)
-    List<String> findProductNameSuggestions(@Param("prefix") String prefix);
+    @Query("SELECT DISTINCT p.name FROM ProductEntity p WHERE LOWER(p.name) LIKE LOWER(CONCAT(:prefix, '%'))")
+    List<String> findProductNameSuggestions(@Param("prefix") String prefix, Pageable pageable);
 
     
 
