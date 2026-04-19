@@ -9,10 +9,9 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 public class SecurityConfig {
@@ -31,29 +30,32 @@ public class SecurityConfig {
         .dispatcherTypeMatchers(
             jakarta.servlet.DispatcherType.ERROR
         ).permitAll()
-        .requestMatchers(
-            "/api/auth/**",
-            "/actuator/health",
-            "/h2-console/**",
-            "/admin/errors",
-            "/admin/errors/**",
-            "/error",
-            "/error/**",
-            "/favicon.ico",
-            "/css/**",
-            "/js/**",
-            "/images/**"
-        ).permitAll()
+        // Static resources - permit all
+        .requestMatchers("/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
+        // Public API
+        .requestMatchers(HttpMethod.GET, "/api/auth/**").permitAll()
+        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+        // Actuator
+        .requestMatchers("/actuator/**").permitAll()
+        // H2 Console
+        .requestMatchers("/h2-console/**").permitAll()
+        // Error pages
+        .requestMatchers("/error", "/error/**").permitAll()
+        .requestMatchers("/admin/errors", "/admin/errors/**").permitAll()
+        // Swagger/OpenAPI - permit all
+        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/swagger-ui/index.html").permitAll()
+        .requestMatchers("/v3/api-docs/**", "/v3/api-docs").permitAll()
+        .requestMatchers("/api-docs", "/api-docs.yaml").permitAll()
+        .requestMatchers("/openapi.yaml", "/openapi.json").permitAll()
+        .requestMatchers("/swagger-resources/**").permitAll()
+        .requestMatchers("/webjars/**").permitAll()
+        .requestMatchers("/doc.html").permitAll()
+        // Protected API
         .requestMatchers("/api/admin/**").hasRole("ADMIN")
         .requestMatchers("/api/finance/**").hasAnyRole("FINANCE", "ADMIN")
         .requestMatchers("/api/client/**").hasRole("CLIENT")
         .anyRequest().authenticated())
     .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
-    }
-
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }

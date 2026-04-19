@@ -4,7 +4,6 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.servers.Server;
@@ -36,7 +35,7 @@ public class SwaggerConfig {
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")
-                                        .description("Entrez le token JWT")))
-                .addSecurityItem(new SecurityRequirement().addList("bearer-jwt"));
+                                        .description("Entrez le token JWT")));
+                // Removed global security requirement so docs are accessible without auth
     }
 }
