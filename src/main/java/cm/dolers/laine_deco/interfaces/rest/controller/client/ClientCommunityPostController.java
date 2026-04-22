@@ -2,6 +2,7 @@ package cm.dolers.laine_deco.interfaces.rest.controller.client;
 
 import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.CommunityPostService;
+import cm.dolers.laine_deco.infrastructure.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -11,12 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/client/community-posts")
 @RequiredArgsConstructor
-
 @PreAuthorize("hasRole('CLIENT')")
 public class ClientCommunityPostController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClientCommunityPostController.class);
@@ -25,39 +24,33 @@ public class ClientCommunityPostController {
     @PostMapping
     public ResponseEntity<CommunityPostResponse> createPost(@Valid @RequestBody CreateCommunityPostRequest request) {
         log.info("POST /api/client/community-posts - Creating");
-        var response = postService.createPost(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(postService.createPost(request));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CommunityPostResponse> getPost(@PathVariable Long id) {
         log.info("GET /api/client/community-posts/{}", id);
-        var response = postService.getPostById(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(postService.getPostById(id));
     }
 
     @GetMapping
     public ResponseEntity<Page<CommunityPostResponse>> getAllPosts(Pageable pageable) {
         log.info("GET /api/client/community-posts");
-        var response = postService.getAllPosts(pageable);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(postService.getAllPosts(pageable));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<Page<CommunityPostResponse>> getMyPosts(Pageable pageable,
-            HttpServletRequest request) {
-        Long userId = extractUserIdFromToken(request);
+    public ResponseEntity<Page<CommunityPostResponse>> getMyPosts(Pageable pageable) {
+        Long userId = SecurityUtils.getCurrentUserId();
         log.info("GET /api/client/community-posts/me - User: {}", userId);
-        var response = postService.getUserPosts(userId, pageable);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(postService.getUserPosts(userId, pageable));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CommunityPostResponse> updatePost(@PathVariable Long id,
             @Valid @RequestBody CreateCommunityPostRequest request) {
         log.info("PUT /api/client/community-posts/{}", id);
-        var response = postService.updatePost(id, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(postService.updatePost(id, request));
     }
 
     @DeleteMapping("/{id}")
@@ -77,24 +70,13 @@ public class ClientCommunityPostController {
     @GetMapping("/{id}/comments")
     public ResponseEntity<Page<CommunityCommentResponse>> getPostComments(@PathVariable Long id, Pageable pageable) {
         log.info("GET /api/client/community-posts/{}/comments", id);
-        var response = postService.getPostComments(id, pageable);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(postService.getPostComments(id, pageable));
     }
 
     @PostMapping("/{id}/comments")
     public ResponseEntity<CommunityCommentResponse> addComment(@PathVariable Long id,
             @RequestParam String comment) {
         log.info("POST /api/client/community-posts/{}/comments", id);
-        var response = postService.addComment(id, comment);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    private Long extractUserIdFromToken(HttpServletRequest request) {
-        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
-            return user.getId();
-        }
-        return 1L; // Fallback local
+        return ResponseEntity.status(HttpStatus.CREATED).body(postService.addComment(id, comment));
     }
 }
-

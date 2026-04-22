@@ -2,6 +2,7 @@ package cm.dolers.laine_deco.interfaces.rest.controller.client;
 
 import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.ChatService;
+import cm.dolers.laine_deco.infrastructure.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/client/chat")
 @RequiredArgsConstructor
-
 @PreAuthorize("hasRole('CLIENT')")
 public class ClientChatController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClientChatController.class);
@@ -27,7 +27,7 @@ public class ClientChatController {
 
     @PostMapping("/conversations")
     public ResponseEntity<ChatConversationResponse> createConversation() {
-        Long userId = extractUserIdFromToken();
+        Long userId = SecurityUtils.getCurrentUserId();
         log.info("POST /api/client/chat/conversations - User: {}", userId);
         var response = chatService.createConversation(userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -42,7 +42,7 @@ public class ClientChatController {
 
     @GetMapping("/conversations")
     public ResponseEntity<Page<ChatConversationResponse>> getMyConversations(Pageable pageable) {
-        Long userId = extractUserIdFromToken();
+        Long userId = SecurityUtils.getCurrentUserId();
         log.info("GET /api/client/chat/conversations - User: {}", userId);
         var response = chatService.getClientConversations(userId, pageable);
         return ResponseEntity.ok(response);
@@ -59,12 +59,7 @@ public class ClientChatController {
     public ResponseEntity<ChatMessageResponse> sendMessage(@PathVariable Long id,
             @Valid @RequestBody CreateChatMessageRequest request) {
         log.info("POST /api/client/chat/conversations/{}/messages", id);
-
-        var modifiedRequest = new CreateChatMessageRequest(
-                id,
-                request.message(),
-                "USER");
-
+        var modifiedRequest = new CreateChatMessageRequest(id, request.message(), "USER");
         var response = chatService.sendMessage(modifiedRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -96,13 +91,4 @@ public class ClientChatController {
         chatService.closeConversation(id);
         return ResponseEntity.ok().build();
     }
-
-    private Long extractUserIdFromToken() {
-        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
-            return user.getId();
-        }
-        return 1L; // Fallback local
-    }
 }
-

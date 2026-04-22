@@ -8,6 +8,7 @@ import cm.dolers.laine_deco.domain.exception.UserException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.KnittingProjectEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.KnittingProjectJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.UserJpaRepository;
+import cm.dolers.laine_deco.infrastructure.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -132,10 +133,6 @@ public class KnittingProjectServiceImpl implements KnittingProjectService {
     }
 
     private Long getCurrentUserId() {
-        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
-            return user.getId();
-        }
-        throw new UserException(ErrorCode.AUTH_UNAUTHORIZED, "Utilisateur non authentifié");
+        return SecurityUtils.getCurrentUserId();
     }
 }

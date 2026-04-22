@@ -7,6 +7,7 @@ import cm.dolers.laine_deco.domain.exception.ErrorCode;
 import cm.dolers.laine_deco.domain.exception.UserException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.*;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.*;
+import cm.dolers.laine_deco.infrastructure.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -160,10 +161,6 @@ public class CommunityPostServiceImpl implements CommunityPostService {
     }
 
     private Long getCurrentUserId() {
-        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
-            return user.getId();
-        }
-        throw new UserException(ErrorCode.AUTH_UNAUTHORIZED, "Utilisateur non authentifié");
+        return SecurityUtils.getCurrentUserId();
     }
 }
