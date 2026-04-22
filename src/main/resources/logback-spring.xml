@@ -1,4 +1,5 @@
 <configuration>
+
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
@@ -8,22 +9,61 @@
     <appender name="LOG_STORE"
               class="cm.dolers.laine_deco.infrastructure.monitoring.LogAppender"/>
 
-    <!-- Catégories spécifiques -->
-    <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="LOG_STORE"/>
-    </logger>
+    <!--
+        CORRECTION : Activation du niveau DEBUG pour Spring Security
+        Les erreurs 401/403 sont loggées en DEBUG par Spring Security
+        → elles doivent maintenant remonter dans le dashboard monitoring
+    -->
     <logger name="org.springframework.security" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="LOG_STORE"/>
     </logger>
-    <logger name="org.springframework.web" level="DEBUG" additivity="false">
+
+    <!--
+        Hibernate SQL : DEBUG pour capturer les requêtes dans le dashboard
+    -->
+    <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="LOG_STORE"/>
     </logger>
 
+    <!--
+        DispatcherServlet : capture les erreurs de routing et les 500
+    -->
+    <logger name="org.springframework.web.servlet.DispatcherServlet" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOG_STORE"/>
+    </logger>
+
+    <!--
+        GlobalExceptionHandler : toutes les exceptions passent ici
+    -->
+    <logger name="cm.dolers.laine_deco.interfaces.rest.exception.GlobalExceptionHandler" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOG_STORE"/>
+    </logger>
+
+    <!--
+        Application code : INFO minimum
+    -->
+    <logger name="cm.dolers.laine_deco" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOG_STORE"/>
+    </logger>
+
+    <!--
+        Binders Hibernate : WARN seulement (trop verbeux en DEBUG)
+    -->
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!--
+        Root : INFO par défaut, les loggers ci-dessus ont priorité
+    -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="LOG_STORE"/>
     </root>
+
 </configuration>
