@@ -3,6 +3,7 @@ package cm.dolers.laine_deco.interfaces.rest.controller.client;
 import cm.dolers.laine_deco.application.dto.NotificationResponse;
 import cm.dolers.laine_deco.application.usecase.NotificationService;
 import cm.dolers.laine_deco.infrastructure.config.PaginationConstants;
+import cm.dolers.laine_deco.infrastructure.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -27,7 +28,7 @@ public class ClientNotificationController {
 
     @GetMapping
     public ResponseEntity<Page<NotificationResponse>> getMyNotifications(Pageable pageable) {
-        Long userId = extractUserIdFromToken();
+        Long userId = SecurityUtils.getCurrentUserId();
         log.info("GET /api/client/notifications - User: {}", userId);
         var response = notificationService.getUserNotifications(userId, pageable);
         return ResponseEntity.ok(response);
@@ -37,30 +38,29 @@ public class ClientNotificationController {
     public ResponseEntity<Page<NotificationResponse>> getUnreadNotifications(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize) {
-        Long userId = extractUserIdFromToken();
-        
+        Long userId = SecurityUtils.getCurrentUserId();
+
         int normalizedSize = PaginationConstants.normalizePageSize(pageSize);
         log.info("GET /api/client/notifications/unread - User: {}, page: {}, size: {}", userId, page, normalizedSize);
-        
+
         List<NotificationResponse> results = notificationService.getUnreadNotifications(userId);
-        
-        // Appliquer la pagination manuellement
+
         int start = page * normalizedSize;
         int end = Math.min(start + normalizedSize, results.size());
         List<NotificationResponse> pageContent = results.subList(start, end);
-        
+
         Page<NotificationResponse> pageResult = new PageImpl<>(
             pageContent,
             org.springframework.data.domain.PageRequest.of(page, normalizedSize),
             results.size()
         );
-        
+
         return ResponseEntity.ok(pageResult);
     }
 
     @GetMapping("/unread-count")
     public ResponseEntity<Long> getUnreadCount() {
-        Long userId = extractUserIdFromToken();
+        Long userId = SecurityUtils.getCurrentUserId();
         log.info("GET /api/client/notifications/unread-count - User: {}", userId);
         var count = notificationService.getUnreadNotificationCount(userId);
         return ResponseEntity.ok(count);
@@ -70,7 +70,7 @@ public class ClientNotificationController {
     public ResponseEntity<Page<NotificationResponse>> getNotificationsByType(
             @PathVariable String type,
             Pageable pageable) {
-        Long userId = extractUserIdFromToken();
+        Long userId = SecurityUtils.getCurrentUserId();
         log.info("GET /api/client/notifications/type/{} - User: {}", type, userId);
         var response = notificationService.getNotificationsByType(userId, type, pageable);
         return ResponseEntity.ok(response);
@@ -92,7 +92,7 @@ public class ClientNotificationController {
 
     @PostMapping("/mark-all-as-read")
     public ResponseEntity<Void> markAllAsRead() {
-        Long userId = extractUserIdFromToken();
+        Long userId = SecurityUtils.getCurrentUserId();
         log.info("POST /api/client/notifications/mark-all-as-read - User: {}", userId);
         notificationService.markAllAsRead(userId);
         return ResponseEntity.ok().build();
@@ -104,15 +104,4 @@ public class ClientNotificationController {
         notificationService.deleteNotification(id);
         return ResponseEntity.noContent().build();
     }
-
-    private Long extractUserIdFromToken() {
-        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
-            return user.getId();
-        }
-        return 1L; // Fallback local
-    }
 }
-
-
-

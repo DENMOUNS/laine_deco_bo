@@ -2,8 +2,8 @@ package cm.dolers.laine_deco.interfaces.rest.controller.client;
 
 import cm.dolers.laine_deco.application.dto.*;
 import cm.dolers.laine_deco.application.usecase.KnittingProjectService;
+import cm.dolers.laine_deco.infrastructure.security.SecurityUtils;
 import jakarta.validation.Valid;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/client/knitting-projects")
 @RequiredArgsConstructor
-
 @PreAuthorize("hasRole('CLIENT')")
 public class ClientKnittingProjectController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
@@ -42,18 +41,16 @@ public class ClientKnittingProjectController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<KnittingProjectResponse>> getMyProjects(
-            Pageable pageable,
-            HttpServletRequest request) {
-        Long userId = extractUserIdFromToken(request);
+    public ResponseEntity<Page<KnittingProjectResponse>> getMyProjects(Pageable pageable) {
+        Long userId = SecurityUtils.getCurrentUserId();
         log.info("GET /api/client/knitting-projects - User: {}", userId);
         var response = projectService.getUserProjects(userId, pageable);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/active")
-    public ResponseEntity<?> getActiveProjects(HttpServletRequest request) {
-        Long userId = extractUserIdFromToken(request);
+    public ResponseEntity<?> getActiveProjects() {
+        Long userId = SecurityUtils.getCurrentUserId();
         log.info("GET /api/client/knitting-projects/active - User: {}", userId);
         var response = projectService.getUserActiveProjects(userId);
         return ResponseEntity.ok(response);
@@ -90,13 +87,4 @@ public class ClientKnittingProjectController {
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
     }
-
-    private Long extractUserIdFromToken(HttpServletRequest request) {
-        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof cm.dolers.laine_deco.infrastructure.security.AuthenticatedUser user) {
-            return user.getId();
-        }
-        return 1L; // Fallback local
-    }
 }
-
