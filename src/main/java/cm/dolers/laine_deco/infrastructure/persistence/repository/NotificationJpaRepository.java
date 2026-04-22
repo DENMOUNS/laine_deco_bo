@@ -1,9 +1,16 @@
 package cm.dolers.laine_deco.infrastructure.persistence.repository;
 
 import cm.dolers.laine_deco.infrastructure.persistence.entity.NotificationEntity;
+import cm.dolers.laine_deco.domain.model.NotificationType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 
 @Repository
@@ -14,15 +21,17 @@ public interface NotificationJpaRepository extends JpaRepository<NotificationEnt
 
     Long countByUserIdAndIsReadFalse(Long userId);
 
-    void deleteByCreatedAtBefore(java.time.Instant date);
+    void deleteByCreatedAtBefore(Instant date);
 
-    org.springframework.data.domain.Page<NotificationEntity> findByUserId(Long userId, org.springframework.data.domain.Pageable pageable);
+    @Query("SELECT n FROM NotificationEntity n WHERE n.user.id = :userId ORDER BY n.createdAt DESC")
+    Page<NotificationEntity> findByUserId(@Param("userId") Long userId, Pageable pageable);
 
-    @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.data.jpa.repository.Query("UPDATE NotificationEntity n SET n.isRead = true WHERE n.user.id = :userId")
-    void markAllAsReadForUser(@org.springframework.data.repository.query.Param("userId") Long userId);
+    @Modifying
+    @Query("UPDATE NotificationEntity n SET n.isRead = true WHERE n.user.id = :userId")
+    void markAllAsReadForUser(@Param("userId") Long userId);
 
-    org.springframework.data.domain.Page<NotificationEntity> findByUserIdAndType(Long userId, cm.dolers.laine_deco.domain.model.NotificationType type, org.springframework.data.domain.Pageable pageable);
+    @Query("SELECT n FROM NotificationEntity n WHERE n.user.id = :userId AND n.type = :type ORDER BY n.createdAt DESC")
+    Page<NotificationEntity> findByUserIdAndType(@Param("userId") Long userId, @Param("type") NotificationType type, Pageable pageable);
 }
 
 

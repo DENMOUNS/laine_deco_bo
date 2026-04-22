@@ -81,7 +81,7 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional(readOnly = true)
     public Page<CouponResponse> getActiveCoupons(Pageable pageable) {
-        return couponRepository.findByIsActiveTrueAndExpiryDateAfter(Instant.now(), pageable)
+        return couponRepository.findActiveCoupons(Instant.now(), pageable)
                 .map(couponMapper::toResponse);
     }
 

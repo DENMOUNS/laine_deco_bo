@@ -80,7 +80,7 @@ public class UserEntity {
     @Column(nullable = false)
     private ThemePreference preferredTheme = ThemePreference.LIGHT; // LIGHT par défaut
 
-    @OneToMany(mappedBy = "user", orphanRemoval = true)
+    @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = jakarta.persistence.CascadeType.ALL)
     private Set<UserRoleEntity> roles = new HashSet<>();
 
     public Long getId() {

@@ -2,10 +2,12 @@ package cm.dolers.laine_deco.application.usecase;
 
 import cm.dolers.laine_deco.application.dto.AuthResult;
 import cm.dolers.laine_deco.domain.exception.AuthException;
+import cm.dolers.laine_deco.domain.model.Role;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.AuthProvider;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.AuthSessionEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.PasswordResetTokenEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.UserEntity;
+import cm.dolers.laine_deco.infrastructure.persistence.entity.UserRoleEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.AuthSessionJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.PasswordResetTokenJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.UserJpaRepository;
@@ -70,6 +72,11 @@ public class AuthApplicationService {
         user.setEmail(normalizedEmail);
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setProvider(AuthProvider.LOCAL);
+        
+        // Ajouter le rôle CLIENT par défaut
+        UserRoleEntity userRole = new UserRoleEntity(user, Role.CLIENT);
+        user.getRoles().add(userRole);
+        
         userRepository.save(user);
 
         return buildSession(user, rememberMe);
@@ -186,7 +193,7 @@ public class AuthApplicationService {
             return Optional.empty();
         }
         sessionRepository.deleteByExpiresAtBefore(Instant.now());
-        return sessionRepository.findByToken(token)
+        return sessionRepository.findByTokenWithUserAndRoles(token)
                 .filter(session -> session.getExpiresAt().isAfter(Instant.now()))
                 .map(AuthSessionEntity::getUser);
     }

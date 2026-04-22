@@ -1,16 +1,19 @@
 package cm.dolers.laine_deco.infrastructure.persistence.repository;
 
-import cm.dolers.laine_deco.domain.model.ExpenseCategory;
-import cm.dolers.laine_deco.domain.model.ExpenseStatus;
-import cm.dolers.laine_deco.infrastructure.persistence.entity.ExpenseEntity;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
+import cm.dolers.laine_deco.domain.model.ExpenseCategory;
+import cm.dolers.laine_deco.domain.model.ExpenseStatus;
+import cm.dolers.laine_deco.infrastructure.persistence.entity.ExpenseEntity;
 
 @Repository
 public interface ExpenseJpaRepository extends JpaRepository<ExpenseEntity, Long> {
@@ -35,8 +38,12 @@ public interface ExpenseJpaRepository extends JpaRepository<ExpenseEntity, Long>
     BigDecimal sumByUserIdAndDateRange(@Param("userId") Long userId, @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
 
-    org.springframework.data.domain.Page<cm.dolers.laine_deco.infrastructure.persistence.entity.ExpenseEntity> findByStatus(cm.dolers.laine_deco.domain.model.ExpenseStatus status, org.springframework.data.domain.Pageable pageable);
-    org.springframework.data.domain.Page<cm.dolers.laine_deco.infrastructure.persistence.entity.ExpenseEntity> findByCategory(cm.dolers.laine_deco.domain.model.ExpenseCategory category, org.springframework.data.domain.Pageable pageable);
-    java.util.List<cm.dolers.laine_deco.infrastructure.persistence.entity.ExpenseEntity> findByOperationDateBetween(java.time.LocalDate start, java.time.LocalDate end);
+    @Query("SELECT e FROM ExpenseEntity e WHERE e.status = :status ORDER BY e.operationDate DESC")
+    Page<ExpenseEntity> findByStatus(@Param("status") ExpenseStatus status, Pageable pageable);
+    
+    @Query("SELECT e FROM ExpenseEntity e WHERE e.category = :category ORDER BY e.operationDate DESC")
+    Page<ExpenseEntity> findByCategory(@Param("category") ExpenseCategory category, Pageable pageable);
+    
+    List<ExpenseEntity> findByOperationDateBetween(LocalDate start, LocalDate end);
 }
 

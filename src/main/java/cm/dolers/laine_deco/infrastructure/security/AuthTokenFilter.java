@@ -33,8 +33,20 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         System.out.println(">>> AUTH HEADER: " + request.getHeader("Authorization"));
         
         String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+        
+        // Gérer "Bearer <token>" ou juste "<token>"
+        String token = null;
+        if (authHeader != null) {
+            if (authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
+            } else if (authHeader.startsWith("bearer ")) {
+                token = authHeader.substring(7);
+            } else {
+                token = authHeader;
+            }
+        }
+        
+        if (token != null && !token.isBlank()) {
             authService.getUserFromToken(token).ifPresent(this::setAuthentication);
         }
         chain.doFilter(request, response);

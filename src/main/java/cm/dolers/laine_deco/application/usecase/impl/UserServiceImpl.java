@@ -67,8 +67,13 @@ public class UserServiceImpl implements UserService {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND, "ID: " + userId));
 
-        user.setName(request.name());
-        user.setPhone(request.phone());
+        // Mettre à jour uniquement les champs non-null
+        if (request.name() != null && !request.name().isBlank()) {
+            user.setName(request.name());
+        }
+        if (request.phone() != null) {
+            user.setPhone(request.phone());
+        }
 
         var updated = userRepository.save(user);
         log.info("User updated: {}", userId);

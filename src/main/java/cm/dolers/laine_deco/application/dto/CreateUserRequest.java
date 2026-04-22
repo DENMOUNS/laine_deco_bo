@@ -1,13 +1,14 @@
 package cm.dolers.laine_deco.application.dto;
 
+import jakarta.annotation.Nullable;
 
 /**
  * Record DTO pour créer/modifier un utilisateur
  */
 public record CreateUserRequest(
-    String email,
-    String password,
-    String name,
-    String phone
+    @Nullable String email,
+    @Nullable String password,
+    @Nullable String name,
+    @Nullable String phone
 ) {}
 

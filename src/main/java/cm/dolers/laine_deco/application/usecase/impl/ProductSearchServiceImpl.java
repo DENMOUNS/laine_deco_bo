@@ -24,7 +24,7 @@ import java.util.List;
 
 public class ProductSearchServiceImpl implements ProductSearchService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProductSearchServiceImpl.class);
-    private final ProductJpaRepository ProductJpaRepository;
+    private final ProductJpaRepository productJpaRepository;
     private final ProductMapper productMapper;
 
     private static final int MAX_PAGE_SIZE = 100;
@@ -53,7 +53,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                 criteria.inStock());
 
         // Exécuter la recherche
-        Page<ProductEntity> results = ProductJpaRepository.findAll(spec, pageable);
+        Page<ProductEntity> results = productJpaRepository.findAll(spec, pageable);
         log.info("Found {} products", results.getTotalElements());
 
         return results.map(productMapper::toResponse);
@@ -68,7 +68,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         Pageable pageable = PageRequest.of(page, pageSize,
                 Sort.by("viewsCount").descending().and(Sort.by("name").ascending()));
 
-        Page<ProductEntity> results = ProductJpaRepository.searchByKeyword(keyword, pageable);
+        Page<ProductEntity> results = productJpaRepository.searchByKeyword(keyword, pageable);
         log.info("Found {} products for keyword: {}", results.getTotalElements(), keyword);
 
         return results.map(productMapper::toResponse);
@@ -82,7 +82,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, pageSize);
 
-        Page<ProductEntity> results = ProductJpaRepository.findPopularProducts(pageable);
+        Page<ProductEntity> results = productJpaRepository.findPopularProducts(pageable);
         return results.map(productMapper::toResponse);
     }
 
@@ -95,7 +95,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         Pageable pageable = PageRequest.of(page, pageSize);
 
         int rating = minRating != null ? minRating : 4; // Par défaut 4+
-        Page<ProductEntity> results = ProductJpaRepository.findTopRatedProducts(rating, pageable);
+        Page<ProductEntity> results = productJpaRepository.findTopRatedProducts(rating, pageable);
 
         return results.map(productMapper::toResponse);
     }
@@ -108,7 +108,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, pageSize);
 
-        Page<ProductEntity> results = ProductJpaRepository.findNewestProducts(pageable);
+        Page<ProductEntity> results = productJpaRepository.findNewestProducts(pageable);
         return results.map(productMapper::toResponse);
     }
 
@@ -122,7 +122,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         }
 
         Pageable pageable = PageRequest.of(0, 10);
-        return ProductJpaRepository.findProductNameSuggestions(prefix, pageable);
+        return productJpaRepository.findProductNameSuggestions(prefix, pageable);
     }
 
     @Override
@@ -133,7 +133,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("name").ascending());
 
-        Page<ProductEntity> results = ProductJpaRepository.findByCategoryIdAndStockQuantityGreaterThan(
+        Page<ProductEntity> results = productJpaRepository.findByCategoryIdAndStockQuantityGreaterThan(
                 categoryId, 0, pageable);
 
         return results.map(productMapper::toResponse);
@@ -148,7 +148,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         Pageable pageable = PageRequest.of(page, pageSize);
 
         Specification<ProductEntity> spec = ProductSpecifications.inStock();
-        Page<ProductEntity> results = ProductJpaRepository.findAll(spec, pageable);
+        Page<ProductEntity> results = productJpaRepository.findAll(spec, pageable);
 
         return results.map(productMapper::toResponse);
     }

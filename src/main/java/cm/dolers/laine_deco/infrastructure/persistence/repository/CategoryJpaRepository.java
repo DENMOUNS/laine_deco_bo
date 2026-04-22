@@ -1,10 +1,11 @@
 package cm.dolers.laine_deco.infrastructure.persistence.repository;
 
 import cm.dolers.laine_deco.infrastructure.persistence.entity.CategoryEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
@@ -12,5 +13,7 @@ import java.util.Optional;
 public interface CategoryJpaRepository extends JpaRepository<CategoryEntity, Long> {
     Optional<CategoryEntity> findByName(String name);
     boolean existsByName(String name);
+    
+    @Query("SELECT c FROM CategoryEntity c WHERE c.parent IS NULL ORDER BY c.name ASC")
     Page<CategoryEntity> findByParentIsNull(Pageable pageable);
 }

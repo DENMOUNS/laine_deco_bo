@@ -8,8 +8,10 @@ import cm.dolers.laine_deco.domain.exception.ValidationException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.RMAEntity;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,9 +77,17 @@ public class RmaServiceImpl implements RmaService {
     @Override
     @Transactional(readOnly = true)
     public Page<RmaResponse> getUserRmas(Long userId, Pageable pageable) {
-        return rmaRepository.findByOrderUserId(userId, pageable).map(rmaMapper::toResponse);
-    }
 
+        Pageable sortedPageable = PageRequest.of(
+            pageable.getPageNumber(),
+            pageable.getPageSize(),
+            Sort.by(Sort.Direction.DESC, "rmaDate") // ⚠️ champ réel de ton entity
+        );
+
+        return rmaRepository
+                .findByUserId(userId, sortedPageable)
+                .map(rmaMapper::toResponse);
+    }
     @Override
     @Transactional
     public RmaResponse updateRmaStatus(Long rmaId, String status) {

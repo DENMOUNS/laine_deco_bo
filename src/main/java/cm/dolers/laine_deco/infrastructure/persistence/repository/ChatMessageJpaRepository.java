@@ -11,7 +11,9 @@ import java.util.List;
 
 @Repository
 public interface ChatMessageJpaRepository extends JpaRepository<ChatMessageEntity, Long> {
-    Page<ChatMessageEntity> findByConversationId(Long conversationId, Pageable pageable);
+    @Query("SELECT m FROM ChatMessageEntity m WHERE m.conversation.id = :conversationId ORDER BY m.createdAt DESC")
+    Page<ChatMessageEntity> findByConversationId(@Param("conversationId") Long conversationId, Pageable pageable);
+    
     List<ChatMessageEntity> findByConversationId(Long conversationId);
     Long countByConversationIdAndIsReadFalse(Long conversationId);
     
