@@ -8,7 +8,6 @@ import cm.dolers.laine_deco.domain.exception.UserException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.*;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.*;
 import cm.dolers.laine_deco.infrastructure.security.SecurityUtils;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,14 +15,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
-
 public class CommunityPostServiceImpl implements CommunityPostService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CommunityPostServiceImpl.class);
     private final CommunityPostJpaRepository postRepository;
     private final CommunityCommentJpaRepository commentRepository;
     private final UserJpaRepository userRepository;
     private final CommunityPostMapper postMapper;
+
+    public CommunityPostServiceImpl(
+            CommunityPostJpaRepository postRepository,
+            CommunityCommentJpaRepository commentRepository,
+            UserJpaRepository userRepository,
+            CommunityPostMapper postMapper) {
+        this.postRepository = postRepository;
+        this.commentRepository = commentRepository;
+        this.userRepository = userRepository;
+        this.postMapper = postMapper;
+    }
 
     @Override
     @Transactional

@@ -9,7 +9,6 @@ import cm.dolers.laine_deco.infrastructure.persistence.entity.KnittingProjectEnt
 import cm.dolers.laine_deco.infrastructure.persistence.repository.KnittingProjectJpaRepository;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.UserJpaRepository;
 import cm.dolers.laine_deco.infrastructure.security.SecurityUtils;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,13 +18,20 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
-
 public class KnittingProjectServiceImpl implements KnittingProjectService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KnittingProjectServiceImpl.class);
     private final KnittingProjectJpaRepository projectRepository;
     private final UserJpaRepository userRepository;
     private final KnittingProjectMapper projectMapper;
+
+    public KnittingProjectServiceImpl(
+            KnittingProjectJpaRepository projectRepository,
+            UserJpaRepository userRepository,
+            KnittingProjectMapper projectMapper) {
+        this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
+        this.projectMapper = projectMapper;
+    }
 
     @Override
     @Transactional

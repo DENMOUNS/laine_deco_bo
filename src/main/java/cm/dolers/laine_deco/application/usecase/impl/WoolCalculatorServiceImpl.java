@@ -8,7 +8,6 @@ import cm.dolers.laine_deco.domain.exception.UserException;
 import cm.dolers.laine_deco.infrastructure.persistence.entity.*;
 import cm.dolers.laine_deco.infrastructure.persistence.repository.*;
 import cm.dolers.laine_deco.infrastructure.security.SecurityUtils;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,13 +18,20 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 @Service
-@RequiredArgsConstructor
-
 public class WoolCalculatorServiceImpl implements WoolCalculatorService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WoolCalculatorServiceImpl.class);
     private final WoolCalculationJpaRepository calculatorRepository;
     private final UserJpaRepository userRepository;
     private final WoolCalculatorMapper calculatorMapper;
+
+    public WoolCalculatorServiceImpl(
+            WoolCalculationJpaRepository calculatorRepository,
+            UserJpaRepository userRepository,
+            WoolCalculatorMapper calculatorMapper) {
+        this.calculatorRepository = calculatorRepository;
+        this.userRepository = userRepository;
+        this.calculatorMapper = calculatorMapper;
+    }
 
     @Override
     @Transactional(readOnly = true)
